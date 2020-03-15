@@ -21,7 +21,9 @@ readr::write_csv(cases_long,
                  path = here::here("inst/extdata/covid19_daily.csv"))
 
 # build package
-devtools::install(build_vignettes = TRUE)
+devtools::install()
+rmarkdown::render(input = here::here('vignettes/regional-cases.Rmd'),
+                  output_file = here::here('vignettes/regional-cases.html'))
 rmarkdown::render(input = here::here('README.Rmd'),
                   output_file = here::here("README.md"))
-
+git2r::status(".", untracked = FALSE)

@@ -17,6 +17,6 @@ knitr::include_graphics("vignettes/figures/case_maps.png")
 ## Data notes
 
 - The county-level map (top left) consists of incomplete records and sum to less than reported totals. It is unclear whether county level data are being or will continue to be reported through to the source. You will note that this map shows no cases for Connecticut, because the reported cases there are only given at the state level. 
-- For Massachusetts, better county-level information is available in the summary reports from the Department of Public Health, found [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring). The totals seems to match the JHU source data, but the state reports most cases as presumptive, not confirmed.  
+- For Massachusetts, better county-level information is available in the summary reports from the Department of Public Health, found [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring). The totals seems to match the JHU source data, but the state reports most cases as presumptive, not confirmed, which is how they are described in the JHU data. 
 - The state-level maps should provide the correct numbers. 
 
