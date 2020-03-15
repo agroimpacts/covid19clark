@@ -1,0 +1,21 @@
+Package: covid19clark
+Title: Downloads and plots latest Corona Virus data around a selected city
+Version: 0.0.1
+Authors@R: 
+    person(given = "Lyndon",
+           family = "Estes",
+           role = c("aut", "cre"),
+           email = "lestes@clarku.edu")
+Description: Adapts code from various corona virus apps and datasets (JHU) and
+  turns it into infection rate map and plots in user-defined regions.
+Suggests: 
+    tidyverse,
+    knitr, 
+    here,
+    maps, 
+    sf, 
+    patchwork
+License: GPL-2 | GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.0.2
