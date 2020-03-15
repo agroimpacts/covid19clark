@@ -30,3 +30,4 @@ rmarkdown::render(input = here::here('README.Rmd'),
 # commit changes
 git2r::add(".", path = unname(unlist(git2r::status(".", untracked = FALSE))))
 git2r::commit(".", message = paste("Package update on", lubridate::now()))
+system("git push")
