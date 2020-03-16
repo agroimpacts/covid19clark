@@ -22,7 +22,9 @@ knitr::include_graphics("vignettes/figures/case_maps.png")
 - For Massachusetts, better county-level information is available in the summary reports from the Department of Public Health, found [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring). The totals seems to match the JHU source data, but the state reports most cases as presumptive, not confirmed, which is how they are described in the JHU data. 
 - The state-level maps should provide the correct numbers. 
 
-To install, if you want to see the vignette and plot using data from the most recent commit:
+## Installation
+
+If you want to see the vignette and plot using data from the most recent commit:
 ```{r, eval=FALSE}
 devtools::install_github(build_vignettes = TRUE)
 ```

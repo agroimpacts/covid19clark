@@ -10,7 +10,8 @@ Description: Adapts code from various corona virus apps and datasets (JHU) and
   turns it into infection rate map and plots in user-defined regions.
 Suggests: 
     tidyverse,
-    knitr, 
+    knitr,
+    rmarkdown,
     here,
     maps, 
     sf, 
