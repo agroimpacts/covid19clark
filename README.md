@@ -6,7 +6,7 @@ that can be used to get daily updates of changes in the distribution of
 COVID-19 within a limited geographic extent centered on a city of
 interest, in this case Worcester, MA, the home of Clark University.
 
-The repo contains code to pulls daily data from the Johns Hopkins
+The repo contains code to pull daily data from the Johns Hopkins
 University [COVID-19
 repository](https://github.com/CSSEGISandData/COVID-19/), and adapts
 code from Rami Krispin’s
@@ -17,14 +17,14 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-15 20:20:08
+**Last update**: 2020-03-15 21:22:26
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
 
   - **I am not an epidemiologist, so this information should not be
     taken as authoritative. There may be flaws in the code or data
-    handling that lead to misleading results.**
+    handling that give rise to misleading results.**
   - If the map is correct, it is nevertheless misleading in that the
     number of cases is almost certainly an underestimate, as US testing
     has been very limited. This statement should be uncontroversial. To
@@ -45,3 +45,10 @@ track finer spatial changes.
     most cases as presumptive, not confirmed, which is how they are
     described in the JHU data.
   - The state-level maps should provide the correct numbers.
+
+To install, if you want to see the vignette and plot using data from the
+most recent commit:
+
+``` r
+devtools::install_github(build_vignettes = TRUE)
+```
