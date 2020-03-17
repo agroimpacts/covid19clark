@@ -106,18 +106,6 @@ region_cases <- lapply(1:4, function(x) {
     dplyr::select(state, county, date, week, x, y, cases) %>% 
     filter(cases > 0)
 })
-
-# states cases
-# state_cases <- as_tibble(cases) %>% filter(is.na(county)) %>%
-#   dplyr::select(state, date, week, cases) %>%
-#   left_join(., states) %>% 
-#   st_centroid() %>% as_tibble() %>% 
-#   mutate(x = st_coordinates(.)[, 1], y = st_coordinates(.)[, 2]) %>% 
-#   dplyr::select(state, date, week, x, y, cases)
-
-# region_cases[[4]] %>% dplyr::filter(state == "massachusetts") %>% 
-#   group_by(county) %>% filter(date == max(date)) %>% ungroup() %>% 
-#   summarize(sum(cases))
 ```
 
 ## Plots
@@ -137,6 +125,7 @@ cty_casesv <- region_cases[[4]] %>% group_by(county) %>%
   filter(date == max(date)) %>% pull(cases)
 size_brks <- c(min(cty_casesv), round(mean(range(cty_casesv))), max(cty_casesv))
 
+pal <- "RdYlBu"  # color palette
 p1 <- ggplot(states) + geom_sf() + 
   geom_sf(data = focal_city, col = "black", shape = 3, size = 2) + 
   geom_point(
@@ -147,8 +136,8 @@ p1 <- ggplot(states) + geom_sf() +
                   cases = max(cases)) %>% ungroup()
     ), aes(x = x, y = y, color = as.integer(date), size = cases), shape = 1
   ) + xlab("") + ylab("") + ggtitle("Cases reported by county") + 
-  scale_size_continuous(breaks = size_brks) + 
-  scale_color_distiller(name = "Date", palette = "RdBu", breaks = my_breaks) +
+  scale_size_continuous(limits = c(1, size_brks[3]), breaks = size_brks) + 
+  scale_color_distiller(name = "Date", palette = pal, breaks = my_breaks) +
   coord_sf(xlim = city_box[c(1, 3)] + c(-0.5, 0.5), ylim = city_box[c(2, 4)]) +
   guides(color = guide_colourbar(order = 1),
          size = guide_legend(order = 2)) + 
@@ -176,7 +165,7 @@ p2 <- ggplot(states) + geom_sf() +
     aes(x = x, y = y, color = as.integer(date), size = cases), shape = 1
   ) + xlab("") + ylab("") + 
   ggtitle("Cases reported by state") + 
-  scale_color_distiller(name = "Date", palette = "RdBu", breaks = my_breaks) +
+  scale_color_distiller(name = "Date", palette = pal, breaks = my_breaks) +
   scale_size_continuous(breaks = size_brks) + 
   coord_sf(xlim = state_box[c(1, 3)] + c(-0.5, 0.5), 
            ylim = state_box[c(2, 4)]) + 
@@ -206,7 +195,7 @@ p3 <- ggplot(case_rates) +
   ylim(0, ylimit) + 
   ggtitle("Cases within varying distances") + 
   geom_line(aes(date, cases, color = radius)) + 
-  scale_color_brewer(name = "", palette = "RdBu") + theme_minimal()
+  scale_color_brewer(name = "", palette = pal) + theme_minimal()
 
 # rate plot, all states in 4 degree radius
 # cases %>% filter(state == "Massachusetts") %>% 
@@ -218,7 +207,7 @@ p4 <- cases %>% filter(is.na(county)) %>%
   ylim(0, ylimit) + 
   xlab("") + ylab("Cases") + 
   ggtitle("Cases per state") + 
-  scale_color_brewer(name = "", palette = "RdBu") + theme_minimal()
+  scale_color_brewer(name = "", palette = pal) + theme_minimal()
 
 op <- (p1 + p2) / (p3 + p4)
 f <- here::here("vignettes/figures/case_maps.png")
