@@ -17,7 +17,7 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-17 13:10:48
+**Last update**: 2020-03-17 13:14:44
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
@@ -39,12 +39,16 @@ track finer spatial changes.
     source. You will note that this map shows no cases for Connecticut,
     because the reported cases there are only given at the state level.
   - For Massachusetts, better county-level information is available in
-    the summary reports from the Department of Public Health, found
+    the summary reports from the Department of Public Health (DPH),
+    found
     [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring).
     The totals seems to match the JHU source data, but the state reports
     most cases as presumptive, not confirmed, which is how they are
-    described in the JHU data.
+    described in the JHU data. ***We are working on ingesting the DPH’s
+    data***, as soon as we get a scraping script set up.  
   - The state-level maps should provide the correct numbers.
+  - The bubble plots are hard to read, so we will work on improving
+    those also.
 
 ## Installation
 
