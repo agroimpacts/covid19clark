@@ -17,7 +17,7 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-17 13:14:44
+**Last update**: 2020-03-17 20:02:27
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
@@ -47,7 +47,7 @@ track finer spatial changes.
     described in the JHU data. ***We are working on ingesting the DPH’s
     data***, as soon as we get a scraping script set up.  
   - The state-level maps should provide the correct numbers.
-  - The bubble plots are hard to read, so we will work on improving
+  - The bubble plots are hard to read, so we are working on improving
     those also.
 
 ## Installation
