@@ -87,6 +87,37 @@ cases_adj <- cases %>% filter(!is.na(county)) %>% dplyr::select(-geometry) %>%
   st_as_sf(coords = c("x", "y"), crs = 4326)
 ```
 
+### Massachusetts cases
+Added in now. The Massachusetts DPH has county-level reporting, so we are reading these in new to replace the JHU reported data with these.  This assume they are more authoritative. **still integrating so switched off**
+```{r, message=FALSE, warning=FALSE, eval=FALSE}
+f <- system.file("extdata/mass_dph_cases_current.csv", package = "covid19clark")
+mass_cases <- read_csv(f) %>% mutate(county = tolower(county)) %>% 
+  mutate(week = lubridate::week(date))
+
+# get centroid for mass counties 
+massxy <- counties %>% 
+  filter(county %in% unique(mass_cases$county)) %>% 
+  filter(state == "massachusetts") %>% st_centroid() %>% 
+  mutate(x = st_coordinates(.)[, 1], y = st_coordinates(.)[, 2]) %>% 
+  as_tibble() %>% dplyr::select(state, county, x, y)
+mass_cases_xy <- left_join(mass_cases, massxy) %>% 
+  dplyr::select(state, county, x, y, week, date, cases)
+
+# update cases
+cases2 <- cases %>% 
+  filter(!(date %in% unique(mass_cases$date) & state == "massachusetts")) %>% 
+  dplyr::select(state, county, x, y, week, date, cases) %>% 
+  mutate(county = ifelse(state == "massachusetts", 
+                         tolower(gsub(" |County", "", county)), county)) %>% 
+  bind_rows(., mass_cases_xy)
+# cases2 %>% filter(state == "massachusetts") %>% view()
+
+colnames(cases_adj)
+
+mass_cases %>% filter(date == max(date)) %>% summarize(sum(cases)) %>% View()
+
+```
+
 ### Define region
 We want to examine cases within different distances from our focal city. So we'll define buffers of 1, 2, 3, and 4 degrees around Worcester (~100-400 km), and use those buffers to extract all COVID-19 case reports intersecting those. 
 

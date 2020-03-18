@@ -20,14 +20,3 @@ cases_long <- cases_raw %>%
 readr::write_csv(cases_long,
                  path = here::here("inst/extdata/covid19_daily.csv"))
 
-# build package and create updated files for README
-devtools::install()
-rmarkdown::render(input = here::here('vignettes/regional-cases.Rmd'),
-                  output_file = here::here('vignettes/regional-cases.html'))
-rmarkdown::render(input = here::here('README.Rmd'),
-                  output_file = here::here("README.md"))
-
-# commit changes
-git2r::add(".", path = unname(unlist(git2r::status(".", untracked = FALSE))))
-git2r::commit(".", message = paste("Package update on", lubridate::now()))
-system("git push")
