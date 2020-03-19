@@ -17,7 +17,7 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-19 13:13:32
+**Last update**: 2020-03-19 13:16:27
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
@@ -52,7 +52,7 @@ track finer spatial changes.
         through to the source. You will note that this map shows no
         cases for Connecticut, because the reported cases there are only
         given at the state level.
-  - The state-level maps should provide the correct numbers.
+      - The state-level maps should provide the correct numbers.
 
 ## Installation
 
