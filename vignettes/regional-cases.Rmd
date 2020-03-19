@@ -1,6 +1,5 @@
 ---
 title: "Regional Map of Spread in COVID-19 cases "
-author: "Vignette Author"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
@@ -79,17 +78,30 @@ state_cnty_cases_diff <- left_join(
 
 # combine cases
 cases_adj <- cases %>% filter(!is.na(county)) %>% dplyr::select(-geometry) %>% 
-  group_by(state, county) %>% arrange(date) %>% 
-  mutate(cases = cumsum(cases)) %>% ungroup %>% 
+  group_by(state, county) %>% arrange(date) %>%
+  mutate(cases = cumsum(cases)) %>% ungroup %>%
   bind_rows(., state_cnty_cases_diff) %>% 
   dplyr::select(ctry, state, county, x, y, date, week, cases) %>% 
   arrange(state, county, date) %>% 
   st_as_sf(coords = c("x", "y"), crs = 4326)
 ```
 
+```{r, echo=FALSE, eval=FALSE}
+state_cnty_cases_diff %>% filter(state == "massachusetts") %>% #view
+cases %>% filter(state == "massachusetts" & !is.na(county)) %>% #view
+  select(county, date, cases)
+cases %>% filter(state == "massachusetts" & is.na(county) & cases > 0) %>% #view
+  select(county, date, cases)
+cases_adj %>% filter(state == "massachusetts" & cases > 0) %>% 
+  filter(date == max(date)) %>% summarize(sum(cases))
+  
+  #view
+```
+
+
 ### Massachusetts cases
 Added in now. The Massachusetts DPH has county-level reporting, so we are reading these in new to replace the JHU reported data with these.  This assume they are more authoritative. **still integrating so switched off**
-```{r, message=FALSE, warning=FALSE, eval=FALSE}
+```{r, message=FALSE, warning=FALSE}
 f <- system.file("extdata/mass_dph_cases_current.csv", package = "covid19clark")
 mass_cases <- read_csv(f) %>% mutate(county = tolower(county)) %>% 
   mutate(week = lubridate::week(date))
@@ -100,22 +112,98 @@ massxy <- counties %>%
   filter(state == "massachusetts") %>% st_centroid() %>% 
   mutate(x = st_coordinates(.)[, 1], y = st_coordinates(.)[, 2]) %>% 
   as_tibble() %>% dplyr::select(state, county, x, y)
-mass_cases_xy <- left_join(mass_cases, massxy) %>% 
-  dplyr::select(state, county, x, y, week, date, cases)
 
-# update cases
+mass_centroid <- states %>% filter(state == "massachusetts") %>% 
+  st_centroid() %>% st_coordinates() %>% unlist()
+mass_cases_xy <- left_join(mass_cases, massxy) %>% 
+  dplyr::select(state, county, x, y, week, date, cases) %>% 
+  mutate(x = ifelse(county == "unknown", mass_centroid[1], x),
+         y = ifelse(county == "unknown", mass_centroid[2], y), 
+         state = ifelse(county == "unknown", "massachusetts", state))
+# mass_cases_xy %>% filter(county == "unknown") %>% arrange(date) %>% 
+#   mutate(cases = cumsum(cases))
+
+# update cases (select pre-Mass DPH cases, and remove any zero cases records), 
+# bind to MASS DPH cases beginning March 13. 
 cases2 <- cases %>% 
-  filter(!(date %in% unique(mass_cases$date) & state == "massachusetts")) %>% 
+  filter(!(date %in% unique(mass_cases$date)) & state == "massachusetts") %>% 
   dplyr::select(state, county, x, y, week, date, cases) %>% 
   mutate(county = ifelse(state == "massachusetts", 
                          tolower(gsub(" |County", "", county)), county)) %>% 
-  bind_rows(., mass_cases_xy)
+  group_by(county) %>% filter(!is.na(county) & cases > 0) %>% 
+  arrange(county) %>%
+  bind_rows(., mass_cases_xy) %>% arrange(county, date)
+
+# complex gymnastics to create whole state time series for mass that is 
+# reasonably accurate--fills the NA county slot for Mass
+# pull county data from orginal JHU time series pre-DPH data record. Summarize
+# across counties by date
+ts1 <- cases %>% 
+  filter(!(date %in% unique(mass_cases$date)) & state == "massachusetts") %>%
+  dplyr::select(state, county, x, y, week, date, cases) %>% 
+  group_by(state, date) %>% 
+  summarize(x = mean(x), y = mean(y), week = mean(week), cases = sum(cases)) %>%
+  filter(cases > 0) %>% 
+  mutate(county = NA) %>% dplyr::select(state, county, !!colnames(.))
+# ts1 %>% view
+
+# summarize DPH data across counties by date
+ts2 <- mass_cases_xy %>% group_by(state, date) %>% 
+  summarize(x = mean(x), y = mean(y), week = mean(week), cases = sum(cases)) %>%
+  mutate(county = NA) %>% dplyr::select(state, county, !!colnames(.))
+cases2 <- bind_rows(cases2 %>% filter(!is.na(county)), bind_rows(ts1, ts2)) %>% 
+  arrange(state, county, date)
+  
+# update cases2 with adjusted mass state-level cases, dropping NA county data
+# with fixed times series
+cases <- cases %>% filter(state != "massachusetts") %>% 
+  dplyr::select(state, county, x, y, week, date, cases) %>% 
+  bind_rows(., cases2) %>% arrange(state, county, date)
+
+# update cases_adj
+cases_adj2 <- cases_adj %>% 
+  filter(!(date %in% unique(mass_cases$date)) & state == "massachusetts") %>% 
+  dplyr::select(state, county, week, date, cases) %>% 
+  mutate(county = ifelse(state == "massachusetts", 
+                         tolower(gsub(" |County", "", county)), county)) %>% 
+  group_by(county) %>% filter(cases > 0) %>% arrange(county) %>%
+  rbind(., mass_cases_xy %>% st_as_sf(coords = c("x", "y"), crs = 4326)) %>%   
+  arrange(county, date) 
+
 # cases2 %>% filter(state == "massachusetts") %>% view()
+cases_adj <- cases_adj %>% filter(state != "massachusetts") %>% 
+  dplyr::select(state, county, week, date, cases) %>% 
+  rbind(., cases_adj2) %>% arrange(state, county, date)
 
-colnames(cases_adj)
 
-mass_cases %>% filter(date == max(date)) %>% summarize(sum(cases)) %>% View()
+# the lines are wrong for MA counties from cases_adj2, so will swap in those
+# from cases for MA
+cases_adj <- cases %>% filter(state == "massachusetts") %>% 
+  st_as_sf(coords = c("x", "y"), crs = 4326) %>% 
+  rbind(., cases_adj %>% filter(state != "massachusetts")) %>% 
+  arrange(state, county, date)
+# cases_adj %>% filter(state == "massachusetts" & !is.na(county)) %>% #view
+#   ggplot() + geom_line(aes(x = date, y = cases, color = county))
+```
 
+```{r, eval=FALSE, echo=FALSE}
+# check plots
+cases %>% filter(date == max(date)) %>% summarize(sum(cases))
+cases %>% filter(state == "massachusetts") %>% view
+cases %>% filter(state == "massachusetts" & !is.na(county)) %>% #view
+  ggplot() + geom_line(aes(x = date, y = cases, color = county))
+cases_adj %>% filter(state == "massachusetts" & !is.na(county)) %>% #view
+  ggplot() + geom_line(aes(x = date, y = cases, color = county))
+cases_adj %>% filter(state == "new york" & !is.na(county)) %>% #view
+  ggplot() + geom_line(aes(x = date, y = cases, color = county))
+cases %>% filter(state == "massachusetts" & !is.na(county)) %>% 
+  filter(date == max(date)) %>% summarize(sum(cases))
+cases_adj %>% filter(state == "massachusetts" & !is.na(county)) %>% 
+  as_tibble() %>% filter(date == max(date)) %>% summarize(sum(cases))
+cases %>% filter(state == "new york" & is.na(county)) %>% 
+  filter(date == max(date)) %>% summarize(sum(cases))
+cases_adj %>% filter(state == "new york" & !is.na(county)) %>% 
+  as_tibble() %>% filter(date == max(date)) %>% summarize(sum(cases))
 ```
 
 ### Define region
@@ -139,6 +227,26 @@ region_cases <- lapply(1:4, function(x) {
 })
 ```
 
+```{r, echo=FALSE}
+# check
+check1 <- cases_adj %>% filter(state == "massachusetts") %>% 
+  as_tibble() %>% filter(date == max(date)) %>% 
+  summarize(cases = sum(cases)) %>% pull()
+check2 <- cases %>% filter(state == "massachusetts") %>% as_tibble() %>% 
+  filter(date == max(date)) %>% summarize(cases = sum(cases)) %>% pull()
+if(check1 != check2) stop("Cases don't match", call. = FALSE)
+ne_states <- c("maine", "new hampshire", "connecticut",
+               "rhode island", "new jersey", "vermont")
+# cases_adj %>% filter(date == max(date)) %>% as_tibble() %>% group_by(state) %>%
+#   summarize(cases = sum(cases)) %>%
+#   filter(state %in% ne_states)
+# cases %>% filter(date == max(date)) %>%
+#   filter(is.na(county) | county == "unknown") %>%
+#   as_tibble() %>% group_by(state) %>%
+#   summarize(cases = sum(cases)) %>% filter(state %in% ne_states)
+```
+
+
 ## Plots
 
 ```{r, message=FALSE, warning=FALSE}
@@ -148,56 +256,79 @@ my_breaks <- function(x) {
   names(breaks) <- attr(breaks, "labels")
   return(breaks)
 }
+case_breaks <- function(x) {
+  size_brks <- seq(min(x), max(x), round(max(x) / 5))
+  if(max(size_brks) < max(x)) {
+    size_brks <- c(size_brks, max(x))
+  } else{
+    size_brks
+  }
+  return(size_brks)
+}
+
 brks <- c(1, floor(max(region_cases[[4]]$cases) / 2), 
           max(region_cases[[4]]$cases))
 
 # County infections, to set up size breaks
-cty_casesv <- region_cases[[4]] %>% group_by(county) %>% 
-  filter(date == max(date)) %>% pull(cases)
-size_brks <- c(min(cty_casesv), round(mean(range(cty_casesv))), max(cty_casesv))
+# cty_casesv <- region_cases[[4]] %>% group_by(county) %>% 
+#   filter(date == max(date) & county != "unknown") %>% pull(cases)
+# size_brks <- seq(min(cty_casesv), max(cty_casesv), round(max(cty_casesv) / 5))
+casesv <- region_cases[[4]] %>% group_by(county) %>% 
+  filter(date == max(date) & county != "unknown") %>% pull(cases)
+size_brks <- case_breaks(casesv)
 
+# size_brks <- c(min(cty_casesv), round(mean(range(cty_casesv))), max(cty_casesv))
 pal <- "RdYlBu"  # color palette
-p1 <- ggplot(states) + geom_sf() + 
+
+# organize data first
+reg_cases <- region_cases[[4]] %>% group_by(state, county) %>%
+  filter(county != "unknown") %>% filter(date == max(date)) %>%  
+  summarize(x = mean(x), y = mean(y), date = max(date), 
+            cases = max(cases)) %>% ungroup() %>% as_tibble()
+states <- states %>% 
+  mutate(Complete = ifelse(state == "massachusetts", "yes", "no"))
+p1 <- ggplot(states) + geom_sf(aes(fill = Complete)) +
+  scale_fill_manual(values = c("grey50", "grey")) + 
   geom_sf(data = focal_city, col = "black", shape = 3, size = 2) + 
-  geom_point(
-    data = as_tibble(
-      region_cases[[4]] %>% group_by(county, state, week) %>%
-        filter(county != "unknown") %>% 
-        summarize(x = mean(x), y = mean(y), date = max(date), 
-                  cases = max(cases)) %>% ungroup()
-    ), aes(x = x, y = y, color = as.integer(date), size = cases), shape = 1
-  ) + xlab("") + ylab("") + ggtitle("Cases reported by county") + 
-  scale_size_continuous(limits = c(1, size_brks[3]), breaks = size_brks) + 
-  scale_color_distiller(name = "Date", palette = pal, breaks = my_breaks) +
-  coord_sf(xlim = city_box[c(1, 3)] + c(-0.5, 0.5), ylim = city_box[c(2, 4)]) +
+  geom_point(data = reg_cases, aes(x = x, y = y, size = cases), 
+             shape = 16, stroke = FALSE, color = "red3") + 
+  xlab("") + ylab("") + ggtitle("Cases reported by county") + 
+  scale_size_continuous(name = "Cases", limits = range(size_brks), 
+                        breaks = size_brks) + 
+  # scale_color_distiller(name = "cases", palette = pal, breaks = size_brks) +
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.5, 0.5), 
+           ylim = city_box[c(2, 4)] + c(0.5, -0.5)) +
+  # guides(colour = guide_legend()) + 
   guides(color = guide_colourbar(order = 1),
-         size = guide_legend(order = 2)) + 
+         size = guide_legend(order = 2)) +
   theme_minimal()
 
 # State infections
-state_casesv <- cases %>% 
+casesv <- cases %>% 
   filter(is.na(county)) %>% group_by(state) %>% 
   filter(cases == max(cases, na.rm = TRUE)) %>% pull(cases)
-size_brks <- c(ifelse(min(state_casesv) == 0, 1, min(state_casesv)),
-               round(mean(range(state_casesv))),
-               max(state_casesv))
+size_brks <- case_breaks(casesv)
 
 # state-based regional bounding box
 state_box <- states %>% 
   filter(state %in% unique(region_cases[[4]]$state)) %>% st_bbox()
+# state breaks
+state_cases <- cases %>% #filter(is.na(county)) %>% 
+  group_by(state) %>% filter(date == max(date)) %>% 
+  summarize(x = mean(x), y = mean(y), date = max(date), 
+            cases = sum(cases)) %>% ungroup() %>% as_tibble()
+# state_cases %>% filter(state == "new york")
 p2 <- ggplot(states) + geom_sf() + 
   geom_sf(data = focal_city, col = "black", shape = 3, size = 2) + 
-  geom_point(
-    data = cases %>% filter(is.na(county) &!is.na(cases)) %>% 
-      group_by(state, week) %>% 
-      summarize(
-        x = mean(x), y = mean(y), date = max(date), cases = max(cases)
-      ) %>% ungroup(), 
-    aes(x = x, y = y, color = as.integer(date), size = cases), shape = 1
-  ) + xlab("") + ylab("") + 
+  geom_point(data = state_cases, aes(x = x, y = y, size = cases), 
+             shape = 16, stroke = FALSE, color = "red3") + 
+  # geom_point(data = state_cases, 
+  #            aes(x = x, y = y, color = cases, size = cases),
+  #            shape = 1) + xlab("") + ylab("") +
   ggtitle("Cases reported by state") + 
-  scale_color_distiller(name = "Date", palette = pal, breaks = my_breaks) +
-  scale_size_continuous(breaks = size_brks) + 
+  # scale_color_distiller(name = "Date", palette = pal, breaks = my_breaks) +
+  scale_size_continuous(name = "Cases", limits = range(size_brks), 
+                        breaks = size_brks) + 
   coord_sf(xlim = state_box[c(1, 3)] + c(-0.5, 0.5), 
            ylim = state_box[c(2, 4)]) + 
   guides(color = guide_colourbar(order = 1),
@@ -228,9 +359,10 @@ p3 <- ggplot(case_rates) +
   geom_line(aes(date, cases, color = radius)) + 
   scale_color_brewer(name = "", palette = pal) + theme_minimal()
 
-# rate plot, all states in 4 degree radius
+# rate plot, all states in 2 degree radius
 # cases %>% filter(state == "Massachusetts") %>% 
 #   filter(date > lubridate::ymd("2020-03-01"))
+pal2 <- c("blue4", "blue1", "lightblue", "orange", "red1", "red4")
 p4 <- cases %>% filter(is.na(county)) %>% 
   filter(state %in% unique(region_cases[[2]]$state)) %>% 
   filter(date > lubridate::ymd("2020-03-01")) %>% 
@@ -238,7 +370,7 @@ p4 <- cases %>% filter(is.na(county)) %>%
   ylim(0, ylimit) + 
   xlab("") + ylab("Cases") + 
   ggtitle("Cases per state") + 
-  scale_color_brewer(name = "", palette = pal) + theme_minimal()
+  scale_color_manual(name = "", values = pal2) + theme_minimal()
 
 op <- (p1 + p2) / (p3 + p4)
 f <- here::here("vignettes/figures/case_maps.png")
