@@ -1,12 +1,12 @@
 # Get latest Mass DPH case reports
 
 `%>%` <- magrittr::`%>%`
-today <- Sys.Date()
-mph_date <- paste0(c(tolower(months(today)), substr(today, 9, 10),
-                     substr(today, 1, 4)), collapse = "-")
+# today <- Sys.Date()
+# mph_date <- paste0(c(tolower(months(today)), substr(today, 9, 10),
+#                      substr(today, 1, 4)), collapse = "-")
 
 # read new mass cases. This should fail silently if there aren't any
-try(new_mass_cases <- covid19clark::get_dph_cases(mph_date), silent = TRUE)
+try(new_mass_cases <- covid19clark::get_dph_cases(), silent = TRUE)
 
 # if there are new cases, combine with the old ones
 if(exists("new_mass_cases")) {

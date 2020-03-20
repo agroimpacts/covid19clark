@@ -4,14 +4,24 @@
 \alias{get_dph_cases}
 \title{Read in cases data from Mass DPH daily docx files}
 \usage{
-get_dph_cases(mph_date)
+get_dph_cases(
+  dph_path = NULL,
+  URL = paste0("https://www.mass.gov/info-details/",
+    "covid-19-cases-quarantine-and-monitoring")
+)
 }
 \arguments{
-\item{filepath}{URL of path to daily docx of COVID cases posted to DPH site}
+\item{dph_path}{User provided path for specific doc, defaults to NULL}
+
+\item{URL}{Path to covid-19 page of Mass DPH}
 }
 \value{
 Table of county infections
 }
 \description{
 Read in cases data from Mass DPH daily docx files
+}
+\details{
+Provide a specific path to dph_path, otherwise if kept as default
+NULL, function will scrape from the latest days COVID-19 cases reports
 }
