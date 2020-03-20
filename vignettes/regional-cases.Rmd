@@ -87,9 +87,9 @@ cases_adj <- cases %>% filter(!is.na(county)) %>% dplyr::select(-geometry) %>%
 ```
 
 ```{r, echo=FALSE, eval=FALSE}
-state_cnty_cases_diff %>% filter(state == "massachusetts") %>% #view
+state_cnty_cases_diff %>% filter(state == "massachusetts") #%>% #view
 cases %>% filter(state == "massachusetts" & !is.na(county)) %>% #view
-  select(county, date, cases)
+  dplyr::select(county, date, cases)
 cases %>% filter(state == "massachusetts" & is.na(county) & cases > 0) %>% #view
   select(county, date, cases)
 cases_adj %>% filter(state == "massachusetts" & cases > 0) %>% 
@@ -235,8 +235,8 @@ check1 <- cases_adj %>% filter(state == "massachusetts") %>%
 check2 <- cases %>% filter(state == "massachusetts") %>% as_tibble() %>% 
   filter(date == max(date)) %>% summarize(cases = sum(cases)) %>% pull()
 if(check1 != check2) stop("Cases don't match", call. = FALSE)
-ne_states <- c("maine", "new hampshire", "connecticut",
-               "rhode island", "new jersey", "vermont")
+# ne_states <- c("maine", "new hampshire", "connecticut",
+#                "rhode island", "new jersey", "vermont")
 # cases_adj %>% filter(date == max(date)) %>% as_tibble() %>% group_by(state) %>%
 #   summarize(cases = sum(cases)) %>%
 #   filter(state %in% ne_states)
