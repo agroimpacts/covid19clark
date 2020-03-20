@@ -5,13 +5,16 @@
 \title{Read in cases data from Mass DPH daily docx files}
 \usage{
 get_dph_cases(
-  dph_path = NULL,
+  path = NULL,
+  query_date = NULL,
   URL = paste0("https://www.mass.gov/info-details/",
     "covid-19-cases-quarantine-and-monitoring")
 )
 }
 \arguments{
-\item{dph_path}{User provided path for specific doc, defaults to NULL}
+\item{path}{User provided path for specific doc, defaults to NULL}
+
+\item{query_date}{User provided date or defaults to NULL (for today)}
 
 \item{URL}{Path to covid-19 page of Mass DPH}
 }

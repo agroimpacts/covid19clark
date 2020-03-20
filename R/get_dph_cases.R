@@ -1,5 +1,6 @@
 #' Read in cases data from Mass DPH daily docx files
-#' @param dph_path User provided path for specific doc, defaults to NULL
+#' @param path User provided path for specific doc, defaults to NULL
+#' @param query_date User provided date or defaults to NULL (for today)
 #' @param URL Path to covid-19 page of Mass DPH
 #' @return Table of county infections
 #' @details Provide a specific path to dph_path, otherwise if kept as default
@@ -9,21 +10,23 @@
 #' @importFrom rvest html_node html_nodes html_attr
 #' @export
 get_dph_cases <- function(
-  dph_path = NULL,
+  path = NULL,
+  query_date = NULL,
   URL = paste0("https://www.mass.gov/info-details/",
                "covid-19-cases-quarantine-and-monitoring")
 ) {
-  if(is.null(dph_path)) {
+  if(is.null(path)) {
     # scrape
     webpage <- xml2::read_html(URL)
-    dph_path <- webpage %>% #html_node(".ma__table--responsive") %>%
+    path <- webpage %>% #html_node(".ma__table--responsive") %>%
       html_node("div.main-content") %>%
       html_node("div.ma__rich-text") %>%
       html_node("div.ma__rich-text") %>% html_nodes(xpath = "p/a") %>%
       html_attr("href") %>% .[(grepl("accessible", .))] %>%
       paste0("https://www.mass.gov", .)
+      query_date <- lubridate::today()
   }
-  txt <- docxtractr::read_docx(dph_path)  # read in file
+  txt <- docxtractr::read_docx(path)  # read in file
   tab <- docxtractr::docx_extract_all_tbls(txt)  # read in all tables
   # find the table that contains the word "County"
   tab <- tab[[which(sapply(tab, function(x) x[1, 1] == "County"))]]
@@ -31,7 +34,7 @@ get_dph_cases <- function(
     slice(-(which(grepl("^sex", x = CATEGORY, ignore.case = TRUE)):nrow(.))) %>%
     filter(CATEGORY != "County") %>%
     rename_all(vars(c("county", "cases"))) %>%
-    mutate(date = lubridate::mdy(mph_date)) %>%
+    mutate(date = query_date) %>%
     mutate(cases = as.numeric(cases)) %>%
     dplyr::select(date, !!colnames(.))
 }
