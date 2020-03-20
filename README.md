@@ -17,7 +17,7 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-20 18:46:52
+**Last update**: 2020-03-20 18:55:30
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
