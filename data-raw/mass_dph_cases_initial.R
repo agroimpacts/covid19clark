@@ -4,8 +4,10 @@
 dvec <- paste0("march-", sprintf("%02i", 13:17), "-2020")
 dph_tabs <- lapply(dvec, function(x) {  # x <- dvec[3]
   print(x)
+  filepath <- paste0("https://www.mass.gov/doc/covid-19-cases-in-",
+                     "massachusetts-as-of-", x, "-accessible/download")
   # fix paths
-  covid19clark::get_dph_cases(path = x, query_date = lubridate::mdy(x))
+  covid19clark::get_ma_cases(path = filepath, query_date = lubridate::mdy(x))
 }) %>% do.call(rbind, .)
 
 readr::write_csv(dph_tabs,

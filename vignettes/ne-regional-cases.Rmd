@@ -1,0 +1,200 @@
+---
+title: "Northeast Regional COVID-19 cases "
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Northeast Regional COVID-19}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Overview
+This package pulls daily data from the Johns Hopkins University [COVID-19 repository](https://github.com/CSSEGISandData/COVID-19/), and adapts code from Rami Krispin's [coronavirus](https://github.com/RamiKrispin/coronavirus) R package, which has a very nice dashboard. 
+
+This one is designed to focus on specific regions, with a particular interest in Worcester, MA, so we can keep the Clark University community informed about the rate of new cases in our immediate vicinity. We are also trying to provide finer spatial resolution by reading in county-level cases reported by state health authorities in the region.
+
+## Data prep
+We use the JHU case to provide statewide totals, and the county level data scraped from particular states for mapping cases at county scales. State-level data are used for time series.
+
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(maps)
+library(sf)
+library(patchwork)
+library(covid19clark)
+
+# county and state maps
+data("counties", package = "covid19clark")
+data("states", package = "covid19clark")
+
+# case data
+f <- system.file("extdata/covid19_daily.csv", package = "covid19clark")
+jhu_cases <- read_csv(f) %>% filter(ctry == "US") %>%
+  mutate(county = ifelse(grepl(",", admin), gsub(",.*", "", admin), NA)) %>%
+  mutate(state = ifelse(grepl(",", admin), gsub(".*, ", "", admin), admin)) %>%
+  dplyr::select(admin, state, county, date, cases)
+
+# vector of state names for matching
+state_names <- tibble(state1 = state.name, state2 = state.abb) %>%
+  mutate(state1 = tolower(state1))
+
+# state cases
+state_cases <- jhu_cases %>% filter(is.na(county)) %>%
+  mutate(state = tolower(state)) %>% dplyr::select(-admin) %>%
+  left_join(., as_tibble(states) %>% dplyr::select(-geom)) %>%
+  rename(state1 = state) %>%
+  left_join(., state_names) %>%
+  dplyr::select(state1, state2, county, x, y, date, cases)
+
+# county cases
+fs <- dir(system.file("extdata", package = "covid19clark"),
+          pattern = "dph*.*current", full.names = TRUE)
+county_cases <- lapply(fs, read_csv) %>% do.call(rbind, .) %>%
+  rename(state1 = state) %>% filter(!is.na(county)) %>%
+  left_join(., state_names) %>%
+  dplyr::select(state1, state2, county, date, cases)
+
+# county cases from the JHU data (but these are not really updated)
+jhu_county_cases <- jhu_cases %>%
+  filter(!is.na(county) & !state %in% unique(county_cases$state1)) %>%
+  rename(state2 = state) %>%
+  mutate(county = tolower(gsub(" County", "", county))) %>%
+  left_join(., state_names, by = "state2") %>%
+  dplyr::select(state1, state2, county, date, cases)
+
+# combine them with scraped county data from particular states
+county_cases_all <- bind_rows(county_cases, jhu_county_cases) %>%
+  left_join(., as_tibble(counties) %>% dplyr::select(-geom),
+            by = c("state1" = "state", "county" = "county")) %>%
+  arrange(state1, county, date) %>% filter(cases > 0)
+```
+
+## Regionalization
+We define a focal city (Worcester), and then figure out which states fall within varius radii around Worcester. These are the basis for time series analyses. 
+```{r, message=FALSE, warning=FALSE}
+# select city
+focal_city <- focal_point("Worcester", "USA")
+
+# buffer and focal city
+city_buffers <- lapply(1:4, function(x) focal_city %>% st_buffer(dist = x))
+ 
+# extract region: neighboring states intersecting buffers
+states_in_buffers <- lapply(city_buffers, function(x) {
+  ind <- unlist(st_intersects(x, states))
+  as_tibble(states) %>% slice(ind) %>% pull(state)
+})
+```
+
+## Plots
+```{r, message=FALSE, warning=FALSE}
+# function to define breaks for bubble legend
+case_breaks <- function(x) {
+  size_brks <- seq(min(x), max(x), round(max(x) / 5))
+  if(max(size_brks) < max(x)) {
+    size_brks <- c(size_brks, max(x))
+  } else{
+    size_brks
+  }
+  return(size_brks)
+}
+
+# plots
+# plot 1: County case map, for counties within 200 km radius
+county_cases_recent <- county_cases_all %>%
+  filter(state1 %in% states_in_buffers[[2]]) %>%
+  group_by(county) %>% filter(date == max(date) & county != "unknown")
+
+# plotting parameters
+size_brks <- case_breaks(county_cases_recent %>% pull(cases))  # breaks
+valid_states <- unique(county_cases$state1)
+states <- states %>%
+  mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
+pal <- "RdYlBu"  # color palette
+city_box <- st_bbox(city_buffers[[2]])
+
+# plot
+p1 <- ggplot(states) + geom_sf(aes(fill = Complete)) +
+  scale_fill_manual(values = c("grey50", "grey")) +
+  geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
+  geom_point(data = county_cases_recent, aes(x = x, y = y, size = cases),
+             shape = 16, stroke = FALSE, color = "red3") +
+  xlab("") + ylab("") + ggtitle("Cases reported by county") +
+  scale_size_continuous(name = "Cases", limits = range(size_brks),
+                        breaks = size_brks) +
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.5, 0.5),
+           ylim = city_box[c(2, 4)] + c(0.5, -0.5)) +
+  guides(color = guide_colourbar(order = 1),
+         size = guide_legend(order = 2)) +
+  theme_minimal()
+
+## plot 2
+state_cases_recent <- state_cases %>% group_by(state1) %>%
+  filter(state1 %in% states_in_buffers[[4]]) %>%
+  filter(date == max(date))
+state_box <- states %>%
+  filter(state %in% states_in_buffers[[2]]) %>% st_bbox()
+size_brks <- case_breaks(state_cases_recent %>% pull(cases))
+
+p2 <- ggplot(states) + geom_sf() +
+  geom_point(data = state_cases_recent, aes(x = x, y = y, size = cases),
+             shape = 16, stroke = FALSE, color = "red3") +
+  geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
+  ggtitle("Cases reported by state") +
+  scale_size_continuous(name = "Cases", limits = range(size_brks),
+                        breaks = size_brks) +
+  coord_sf(xlim = state_box[c(1, 3)] + c(-0.5, 0.5),
+           ylim = state_box[c(2, 4)]) +
+  guides(color = guide_colourbar(order = 1),
+         size = guide_legend(order = 2)) +
+  theme_minimal()
+
+state_abbrevs <- lapply(states_in_buffers, function(x) {
+  state_names %>% filter(state1 %in% x) %>% pull(state2)
+})
+case_rates <- lapply(c(1, 4), function(x) {  # x <- 4
+  state_cases %>% filter(state1 %in% !!states_in_buffers[[x]]) %>%
+    group_by(date) %>%
+    summarize(cases = sum(cases)) %>%
+    mutate(states = paste(state_abbrevs[[x]], collapse = "-")) %>%
+    mutate(radius = paste0("~", x, "00 km")) %>%
+    dplyr::select(radius, states, date, cases)
+}) %>% do.call(rbind, .)
+
+ylimit <- max(case_rates$cases)
+p3 <- case_rates %>%
+  filter(date > "2020-03-01" & radius %in% paste0("~", c(1, 4), "00 km")) %>%
+  ggplot() + geom_line(aes(x = date, y = cases, color = states)) +
+  ylim(0, ylimit) + ggtitle("Cases within region") +
+  scale_color_manual(name = "Region", values = c("red", "blue")) +
+  scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+  theme_minimal()
+
+# rate plot, all states in 2 degree radius
+pal2 <- c("purple", "blue4", "blue1", "lightblue", "orange", "red1", "red4")
+p4 <- state_cases %>%
+  filter(state1 %in% states_in_buffers[[2]]) %>%
+  filter(date > lubridate::ymd("2020-03-01")) %>%
+  ggplot() + geom_line(aes(date, cases, color = state1)) +
+  ylim(0, ylimit) +
+  xlab("") + ylab("Cases") +
+  ggtitle("Cases per state") +
+  scale_color_manual(name = "", values = pal2) + 
+  scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+  theme_minimal()
+
+op <- (p1 + p2) / (p3 + p4)
+f <- here::here("vignettes/figures/case_maps.png")
+ggsave(op, filename = f, height = 7, width = 10, dpi = 300)
+```
+
+```{r, echo=FALSE, out.width='100%'}
+knitr::include_graphics(f)
+```
+
