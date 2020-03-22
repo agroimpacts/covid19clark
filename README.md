@@ -1,23 +1,18 @@
 covid19clark
 ================
 
-A very limited `R` package (with no functions and just one vignette)
-that can be used to get daily updates of changes in the distribution of
-COVID-19 within a limited geographic extent centered on a city of
-interest, in this case Worcester, MA, the home of Clark University.
+A very limited `R` package for mapping daily changes in the number of
+COVID-19 cases. It uses daily data from the Johns Hopkins University
+[COVID-19 repository](https://github.com/CSSEGISandData/COVID-19/), and
+adapts code from Rami Krispin’s
+[`coronavirus`](https://github.com/RamiKrispin/coronavirus) package
+(which has a very nice interactive, global dashboard) and from several
+surrounding states. The focus of this is to highlight regional changes
+around a focal point, in this case Worcester, MA, the home of Clark
+University. It also tries to show county-level detail available in state
+datasets.
 
-The repo contains code to pull daily data from the Johns Hopkins
-University [COVID-19
-repository](https://github.com/CSSEGISandData/COVID-19/), and adapts
-code from Rami Krispin’s
-[`coronavirus`](https://github.com/RamiKrispin/coronavirus) package,
-which has a very nice interactive, global dashboard.
-
-This packages was made to highlight the regional change, and to try
-resolve some of the county level detail available in source datasets, to
-track finer spatial changes.
-
-**Last update**: 2020-03-22 00:10:51
+**Last update**: 2020-03-22 00:18:46
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
