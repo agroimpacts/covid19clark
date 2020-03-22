@@ -17,7 +17,7 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-22 00:05:52
+**Last update**: 2020-03-22 00:10:51
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
@@ -26,9 +26,9 @@ track finer spatial changes.
 
   - County-level data are now being read from Massachusetts DPH, found
     [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring),
-    and also \[Connecticut\[(<https://portal.ct.gov/Coronavirus>). These
-    are really the only useful county-level data available at this stage
-    on the maps, which is why the two states are shaded differently (top
+    and also [Connecticut](https://portal.ct.gov/Coronavirus). These are
+    really the only useful county-level data available at this stage on
+    the maps, which is why the two states are shaded differently (top
     left).
   - Time series data are now processed from the state-level JHU data
     only. County-level data are used only for mapping.
