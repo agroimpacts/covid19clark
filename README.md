@@ -17,42 +17,35 @@ This packages was made to highlight the regional change, and to try
 resolve some of the county level detail available in source datasets, to
 track finer spatial changes.
 
-**Last update**: 2020-03-20 18:07:53
+**Last update**: 2020-03-22 00:00:56
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
 
-  - **Update 19 March 2020**:
-      - County-level data are now being read from Massachusetts DPH,
-        found
-        [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring).
-        These are really the only useful county-level data available at
-        this stage on the maps, which is why Massachusetts is shaded
-        differently (top left). These enter the time series from March
-        13. JHU data are used before that date.
-      - The time series information in the bubbles has been removed.
-      - The state map (top right) doesn’t have correct centroids. That
-        is an artifact from the case data. To be fixed.
-  - Previous notes:
-      - **I am not an epidemiologist, so this information should not be
-        taken as authoritative. There may be flaws in the code or data
-        handling that give rise to misleading results.**
-      - If the map is correct, it is nevertheless misleading in that the
-        number of cases is almost certainly an underestimate, as US
-        testing has been very limited. This statement should be
-        uncontroversial. To support that claim,
-        [here](https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/testing-in-us.html?CDC_AA_refVal=https%3A%2F%2Fwww.cdc.gov%2Fcoronavirus%2F2019-ncov%2Ftesting-in-us.html)
-        is the CDC’s page on testing rates.
-        [Here](https://www.businessinsider.com/coronavirus-testing-covid-19-tests-per-capita-chart-us-behind-2020-3?op=1)
-        is a comparison of the US testing rate relative to other
-        countries.
-      - The county-level maps (top left) consists of incomplete records
-        and sum to less than reported totals. It is unclear whether
-        county level data are being or will continue to be reported
-        through to the source. You will note that this map shows no
-        cases for Connecticut, because the reported cases there are only
-        given at the state level.
-      - The state-level maps should provide the correct numbers.
+**Updated 21 March 2020**:
+
+  - County-level data are now being read from Massachusetts DPH, found
+    [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring),
+    and also \[Connecticut\[(<https://portal.ct.gov/Coronavirus>). These
+    are really the only useful county-level data available at this stage
+    on the maps, which is why the two states are shaded differently (top
+    left).
+  - Time series data are now processed from the state-level JHU data
+    only. County-level data are used only for mapping.
+
+## Disclaimers
+
+  - **I am not an epidemiologist, so this information should not be
+    taken as authoritative. There may be flaws in the code or data
+    handling that give rise to misleading results.**
+  - If the map is correct, it is nevertheless misleading in that the
+    number of cases is almost certainly an underestimate, as US testing
+    has been very limited. This statement should be uncontroversial. To
+    support that claim,
+    [here](https://www.cdc.gov/coronavirus/2019-ncov/cases-updates/testing-in-us.html?CDC_AA_refVal=https%3A%2F%2Fwww.cdc.gov%2Fcoronavirus%2F2019-ncov%2Ftesting-in-us.html)
+    is the CDC’s page on testing rates.
+    [Here](https://www.businessinsider.com/coronavirus-testing-covid-19-tests-per-capita-chart-us-behind-2020-3?op=1)
+    is a comparison of the US testing rate relative to other countries.
 
 ## Installation
 

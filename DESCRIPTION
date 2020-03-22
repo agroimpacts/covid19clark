@@ -1,6 +1,6 @@
 Package: covid19clark
 Title: Downloads and plots latest Corona Virus data around a selected city
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: 
     person(given = "Lyndon",
            family = "Estes",
