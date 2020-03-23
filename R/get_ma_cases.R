@@ -23,7 +23,7 @@ get_ma_cases <- function(
       html_node("div.main-content") %>%
       html_node("div.ma__rich-text") %>%
       html_node("div.ma__rich-text") %>% html_nodes(xpath = "p/a") %>%
-      html_attr("href") %>% .[(grepl("accessible", .))] %>%
+      html_attr("href") %>% .[2] %>%
       paste0("https://www.mass.gov", .)
     pat <- paste("https://www.mass.gov/doc/", "/download", "accessible",
                  "covid-19", "cases", "in", "massachusetts", "as", "of", "-",
