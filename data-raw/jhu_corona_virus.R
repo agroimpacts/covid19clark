@@ -7,7 +7,7 @@ jhu_path <- glue::glue("https://raw.githubusercontent.com/CSSEGISandData/",
                        "COVID-19/master/csse_covid_19_data/",
                        "csse_covid_19_time_series/",
                        "time_series_19-covid-Confirmed.csv")
-cases_raw <- jhu_dat <- readr::read_csv(file = jhu_path)
+cases_raw <- readr::read_csv(file = jhu_path)
 
 # wide to long
 cases_long <- cases_raw %>%
