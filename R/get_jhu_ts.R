@@ -2,7 +2,7 @@
 #' @param write If TRUE, writes output as csv to filepath. Defaults to FALSE
 #' @param filepath Provide filename and path to write to.
 #' @return Long format database of time cases, recoveries, deaths
-#' @details Downloads time series of JHU Corona virus data, so no arguments.
+#' @details Downloads time series of JHU Corona virus data.
 #' Data source: https://github.com/CSSEGISandData/COVID-19. Code adapted
 #' from: https://github.com/RamiKrispin/coronavirus. If write = TRUE and
 #' fielpath = NULL, a covid19.csv will be written to the current directory
@@ -11,10 +11,10 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom rvest html_table
 #' @examples
-#' cases <- get_jhu_data()
-#' cases <- get_jhu_data(write = TRUE)
+#' cases <- get_jhu_ts()
+#' cases <- get_jhu_ts(write = TRUE)
 #' @export
-get_jhu_data <- function(write = FALSE, filepath = NULL) {
+get_jhu_ts <- function(write = FALSE, filepath = NULL) {
   case_types <- c("Confirmed", "Deaths", "Recovered")
   path <- paste0("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/",
                  "master/csse_covid_19_data/csse_covid_19_time_series/",

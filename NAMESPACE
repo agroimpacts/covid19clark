@@ -2,7 +2,8 @@
 
 export(focal_point)
 export(get_ct_cases)
-export(get_jhu_data)
+export(get_jhu_daily)
+export(get_jhu_ts)
 export(get_ma_cases)
 importFrom(dplyr,filter)
 importFrom(dplyr,mutate)
