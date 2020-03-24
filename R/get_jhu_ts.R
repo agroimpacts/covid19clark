@@ -7,7 +7,7 @@
 #' from: https://github.com/RamiKrispin/coronavirus. If write = TRUE and
 #' fielpath = NULL, a covid19.csv will be written to the current directory
 #' @importFrom magrittr `%>%`
-#' @importFrom dplyr mutate select rename left_join
+#' @importFrom dplyr mutate select rename left_join arrange
 #' @importFrom tidyr pivot_longer
 #' @importFrom rvest html_table
 #' @examples

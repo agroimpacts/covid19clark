@@ -35,8 +35,8 @@ data("counties", package = "covid19clark")
 data("states", package = "covid19clark")
 
 # case data
-f <- system.file("extdata/covid19_daily.csv", package = "covid19clark")
-jhu_cases <- read_csv(f) %>% filter(ctry == "US") %>%
+f <- system.file("extdata/covid19_ts.csv", package = "covid19clark")
+jhu_cases <- read_csv(f) %>% filter(country == "US") %>%
   mutate(county = ifelse(grepl(",", admin), gsub(",.*", "", admin), NA)) %>%
   mutate(state = ifelse(grepl(",", admin), gsub(".*, ", "", admin), admin)) %>%
   dplyr::select(admin, state, county, date, cases)
@@ -54,26 +54,11 @@ state_cases <- jhu_cases %>% filter(is.na(county)) %>%
   dplyr::select(state1, state2, county, x, y, date, cases)
 
 # county cases
-fs <- dir(system.file("extdata", package = "covid19clark"),
-          pattern = "dph*.*current", full.names = TRUE)
-county_cases <- lapply(fs, read_csv) %>% do.call(rbind, .) %>%
-  rename(state1 = state) %>% filter(!is.na(county)) %>%
-  left_join(., state_names) %>%
-  dplyr::select(state1, state2, county, date, cases)
-
-# county cases from the JHU data (but these are not really updated)
-jhu_county_cases <- jhu_cases %>%
-  filter(!is.na(county) & !state %in% unique(county_cases$state1)) %>%
-  rename(state2 = state) %>%
-  mutate(county = tolower(gsub(" County", "", county))) %>%
-  left_join(., state_names, by = "state2") %>%
-  dplyr::select(state1, state2, county, date, cases)
-
-# combine them with scraped county data from particular states
-county_cases_all <- bind_rows(county_cases, jhu_county_cases) %>%
-  left_join(., as_tibble(counties) %>% dplyr::select(-geom),
-            by = c("state1" = "state", "county" = "county")) %>%
-  arrange(state1, county, date) %>% filter(cases > 0)
+f <- system.file("extdata/covid19_daily.csv", package = "covid19clark")
+daily_cases <- read_csv(f) %>% filter(ctry == "US") %>% 
+  rename(state = prov, county = admin) %>% 
+  mutate(county = tolower(county), state = tolower(state)) %>% 
+  dplyr::select(state, county, x, y, date, cases, deaths, recovered)
 ```
 
 ## Regionalization
@@ -107,23 +92,23 @@ case_breaks <- function(x) {
 
 # plots
 # plot 1: County case map, for counties within 200 km radius
-county_cases_recent <- county_cases_all %>%
-  filter(state1 %in% states_in_buffers[[2]]) %>%
-  group_by(county) %>% filter(date == max(date) & county != "unknown")
+daily_cases_region <- daily_cases %>%
+  filter(state %in% states_in_buffers[[2]])
 
+daily_cases_region %>% filter(cases == max(cases))
 # plotting parameters
-size_brks <- case_breaks(county_cases_recent %>% pull(cases))  # breaks
-valid_states <- unique(county_cases$state1)
-states <- states %>%
-  mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
+size_brks <- case_breaks(daily_cases_region %>% pull(cases))  # breaks
+# valid_states <- unique(county_cases$state1)
+# states <- states %>%
+#   mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
 pal <- "RdYlBu"  # color palette
 city_box <- st_bbox(city_buffers[[2]])
 
 # plot
-p1 <- ggplot(states) + geom_sf(aes(fill = Complete)) +
+p1 <- ggplot(states) + geom_sf() +
   scale_fill_manual(values = c("grey50", "grey")) +
   geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
-  geom_point(data = county_cases_recent, aes(x = x, y = y, size = cases),
+  geom_point(data = daily_cases_region, aes(x = x, y = y, size = cases),
              shape = 16, stroke = FALSE, color = "red3") +
   xlab("") + ylab("") + ggtitle("Cases reported by county") +
   scale_size_continuous(name = "Cases", limits = range(size_brks),

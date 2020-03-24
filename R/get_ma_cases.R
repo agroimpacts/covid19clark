@@ -23,11 +23,13 @@ get_ma_cases <- function(
       html_node("div.main-content") %>%
       html_node("div.ma__rich-text") %>%
       html_node("div.ma__rich-text") %>% html_nodes(xpath = "p/a") %>%
-      html_attr("href") %>% .[(grepl("accessible", .))] %>%
-      paste0("https://www.mass.gov", .)
-    pat <- paste("https://www.mass.gov/doc/", "/download", "accessible",
-                 "covid-19", "cases", "in", "massachusetts", "as", "of", "-",
-                 sep = "|")
+      html_attr("href") %>% .[2]
+    pat <- paste("https:\\/\\/www.mass.gov)", "\\/doc\\/", "\\/download",
+                 "accessible", "covid-19", "cases", "in", "massachusetts", "as",
+                 "of", "-", sep = "|")
+    # pat <- paste0("[(", paste(month.name, tolower(month.name), sep = "|",
+    #                     collapse = "|"), ")]-22-2020")
+    # stringr::str_extract(path, pat)
     query_date <- lubridate::mdy(gsub(pat, "", path))
   }
   txt <- docxtractr::read_docx(path)  # read in file
