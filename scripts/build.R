@@ -4,11 +4,11 @@
 # JHU
 source(here::here("data-raw/jhu_corona_virus.R"))
 
-# Mass MPH
-source(here::here("data-raw/mass_dph_cases_today.R"))
-
-# CT DPH
-source(here::here("data-raw/ct_dph_cases_today.R"))
+# # Mass MPH
+# source(here::here("data-raw/mass_dph_cases_today.R"))
+#
+# # CT DPH
+# source(here::here("data-raw/ct_dph_cases_today.R"))
 
 # Build package
 devtools::install()
