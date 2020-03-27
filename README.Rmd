@@ -11,7 +11,11 @@ knitr::include_graphics("vignettes/figures/case_maps.png")
 ```
 
 ## Notes
-**Updated 23 March 2020**:
+**Updates 26 March 2020**:
+- Switched to read JHU [daily reports](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports) exclusively. JHU time series now only summarizes for country level as of 22/3, [per notice](https://github.com/CSSEGISandData/COVID-19/issues/1250). These data are in a different format prior to 22/3. The earlier parts of the time series jump around more than in previous versions.
+- New function added to read data from daily reports
+
+**Updates 23 March 2020**:
 
 - Daily city/county/admin 2 level are now being read in from the [web-data branch](https://github.com/CSSEGISandData/COVID-19/tree/web-data/data) of the JHU repo.
 - Time series data are now processed from the state-level JHU data only. County-level data are used only for mapping. 

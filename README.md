@@ -12,19 +12,26 @@ around a focal point, in this case Worcester, MA, the home of Clark
 University. It also tries to show county-level detail available in state
 datasets.
 
-**Last update**: 2020-03-23 23:17:39
+**Last update**: 2020-03-26 23:49:26
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
 
-**Updated 21 March 2020**:
+**Updates 26 March 2020**: - Switched to read JHU [daily
+reports](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports)
+exclusively. JHU time series now only summarizes for country level as of
+22/3, [per
+notice](https://github.com/CSSEGISandData/COVID-19/issues/1250). These
+data are in a different format prior to 22/3. The earlier parts of the
+time series jump around more than in previous versions. - New function
+added to read data from daily reports
 
-  - County-level data are now being read from Massachusetts DPH, found
-    [here](https://www.mass.gov/info-details/covid-19-cases-quarantine-and-monitoring),
-    and also [Connecticut](https://portal.ct.gov/Coronavirus). These are
-    really the only useful county-level data available at this stage on
-    the maps, which is why the two states are shaded differently (top
-    left).
+**Updates 23 March 2020**:
+
+  - Daily city/county/admin 2 level are now being read in from the
+    [web-data
+    branch](https://github.com/CSSEGISandData/COVID-19/tree/web-data/data)
+    of the JHU repo.
   - Time series data are now processed from the state-level JHU data
     only. County-level data are used only for mapping.
 
