@@ -12,12 +12,25 @@ around a focal point, in this case Worcester, MA, the home of Clark
 University. It also tries to show county-level detail available in state
 datasets.
 
-**Last update**: 2020-03-23 23:29:31
+**Last update**: 2020-03-26 23:51:23
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
 
-**Updated 23 March 2020**:
+**Updates 26 March 2020**:
+
+  - Switched to read JHU [daily
+    reports](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports)
+    exclusively. JHU time series now only summarizes for country level
+    as of 22/3, [per
+    notice](https://github.com/CSSEGISandData/COVID-19/issues/1250).
+    These data are in a different format prior to 22/3. The earlier
+    parts of the time series jump around more than in previous versions.
+  - New function added to read data from daily reports
+  - Dropped plot of regionalized rates of increases. Added plot of
+    deaths per state.
+
+**Updates 23 March 2020**:
 
   - Daily city/county/admin 2 level are now being read in from the
     [web-data

@@ -31,34 +31,85 @@ library(patchwork)
 library(covid19clark)
 
 # county and state maps
-data("counties", package = "covid19clark")
+# data("counties", package = "covid19clark")
 data("states", package = "covid19clark")
 
 # case data
-f <- system.file("extdata/covid19_ts.csv", package = "covid19clark")
-jhu_cases <- read_csv(f) %>% filter(country == "US") %>%
-  mutate(county = ifelse(grepl(",", admin), gsub(",.*", "", admin), NA)) %>%
-  mutate(state = ifelse(grepl(",", admin), gsub(".*, ", "", admin), admin)) %>%
-  dplyr::select(admin, state, county, date, cases)
+f <- system.file("extdata/covid19_daily_reports.csv", package = "covid19clark")
+jhu_cases <- read_csv(
+  f, col_types = cols(fips = col_character(), admin2 = col_character(),
+                      key = col_character())
+) %>% filter(country == "US") 
+pat <- "Unassigned Location|Grand Princess|Diamond Princess"
+jhu_cases <- jhu_cases %>% select(-fips, -country) %>% 
+  mutate(county = ifelse(grepl(",", prov), gsub(",.*", "", prov), NA)) %>% 
+  mutate(state = ifelse(grepl(",", prov), gsub(".*, ", "", prov), prov)) %>% 
+  mutate(county = gsub(" County", "", county)) %>% 
+  mutate(state = tolower(gsub(" \\(From Diamond Princess\\)", "", state))) %>% 
+  mutate(state = ifelse(state == "d.c.", "dc", state)) %>% 
+  filter(!grepl(pat, state, ignore.case = TRUE)) %>% 
+  mutate(county = ifelse(is.na(county), admin2, county)) %>%
+  dplyr::select(admin2, county, prov, state, key, x, y, date, cases, deaths)  
 
 # vector of state names for matching
 state_names <- tibble(state1 = state.name, state2 = state.abb) %>%
-  mutate(state1 = tolower(state1))
+  mutate(state1 = tolower(state1)) %>% 
+  bind_rows(., tibble(state1 = "district of columbia", state2 = "DC"))
+# jhu_cases %>% filter(grepl("d.c.", state, ignore.case = TRUE)) %>% view
 
-# state cases
-state_cases <- jhu_cases %>% filter(is.na(county)) %>%
-  mutate(state = tolower(state)) %>% dplyr::select(-admin) %>%
-  left_join(., as_tibble(states) %>% dplyr::select(-geom)) %>%
+# fix mismatching states, etc (not thoroughly checked yet)
+jhu_fix_state_abbrev <- jhu_cases %>% filter(nchar(state) < 4) %>% 
+  rename(state2 = state) %>%
+  left_join(., state_names %>% mutate(state2 = tolower(state2))) %>% 
+  select(state1, state2, admin2, prov, county, key, x, y, date, cases, deaths)
+jhu_full_state_names <- jhu_cases %>% filter(nchar(state) > 3) %>% 
   rename(state1 = state) %>%
   left_join(., state_names) %>%
-  dplyr::select(state1, state2, county, x, y, date, cases)
+  mutate(state2 = tolower(state2)) %>% 
+  select(state1, state2, admin2, prov, county, key, x, y, date, cases, deaths)  
+# jhu_full_state_names %>% filter(state2 == "dc")  
 
-# county cases
-f <- system.file("extdata/covid19_daily.csv", package = "covid19clark")
-daily_cases <- read_csv(f) %>% filter(ctry == "US") %>% 
-  rename(state = prov, county = admin) %>% 
-  mutate(county = tolower(county), state = tolower(state)) %>% 
-  dplyr::select(state, county, x, y, date, cases, deaths, recovered)
+jhu_cases_all <- bind_rows(jhu_fix_state_abbrev, jhu_full_state_names) %>% 
+  arrange(date, state1, county) %>% mutate(county = tolower(county))
+jhu_cases_all %>% filter(state2 == "ma") %>%
+  filter((x == 0 & y == 0) | is.na(x))
+
+# jhu_cases_all %>% filter(state2 == "ma") %>% #filter(is.na(county)) %>% 
+#   group_by(date) %>% 
+#   summarize(cases = sum(cases))
+
+# state cases
+state_cases <- jhu_cases_all %>% 
+  group_by(state1, date) %>%
+  summarize(cases = sum(cases), deaths = sum(deaths), state2 = unique(state2),
+            x = mean(x, na.rm = TRUE), y = mean(y, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  dplyr::select(state1, state2, date, cases, deaths)
+as_tibble(states) %>% select(state, x, y) %>% 
+  left_join(state_cases, ., by = c("state1" = "state")) -> state_cases
+
+# state_cases %>% group_by(state1, date) %>% count() %>% filter(n > 1)
+
+# # county cases
+# f <- system.file("extdata/covid19_daily.csv", package = "covid19clark")
+# daily_cases <- read_csv(f) %>% filter(ctry == "US") %>% 
+daily_cases <- jhu_cases_all %>%
+  filter(!grepl("unknown|unassigned", county, ignore.case = TRUE)) %>% 
+  filter(!is.na(county)) %>% filter(!(x == 0 & y == 0) | !is.na(x)) %>% 
+  group_by(state1, county, date) %>%
+  mutate(cases = cumsum(cases), deaths = sum(deaths)) %>% 
+  ungroup() %>% 
+  dplyr::select(state1, state2, county, x, y, date, cases, deaths)
+```
+
+```{r, echo=FALSE, eval=FALSE}
+# checks
+daily_cases %>% filter(state2 == "ma") %>% filter(date == max(date)) %>%
+  summarize(sum(cases))
+daily_cases %>% filter(state2 == "ma") %>%  filter(grepl("worc", county))
+
+# compare against DPH county numbers for 3/24--checks out
+daily_cases %>% filter(state2 == "ma") %>% filter((x == 0 & y == 0) | is.na(x))
 ```
 
 ## Regionalization
@@ -66,10 +117,14 @@ We define a focal city (Worcester), and then figure out which states fall within
 ```{r, message=FALSE, warning=FALSE}
 # select city
 focal_city <- focal_point("Worcester", "USA")
+st_transform(focal_city, crs = 102008)
 
 # buffer and focal city
-city_buffers <- lapply(1:4, function(x) focal_city %>% st_buffer(dist = x))
- 
+city_buffers <- lapply(seq(100, 400, 100) * 1000, function(x) {
+  buff <- st_transform(focal_city, crs = 102008) %>% st_buffer(dist = x)
+  buff <- st_transform(buff, crs = 4326)
+})
+
 # extract region: neighboring states intersecting buffers
 states_in_buffers <- lapply(city_buffers, function(x) {
   ind <- unlist(st_intersects(x, states))
@@ -92,12 +147,16 @@ case_breaks <- function(x) {
 
 # plots
 # plot 1: County case map, for counties within 200 km radius
-daily_cases_region <- daily_cases %>%
-  filter(state %in% states_in_buffers[[2]])
+daily_cases_region <- daily_cases %>% 
+  filter(state1 %in% states_in_buffers[[2]] & date == max(date)) %>%
+  filter(cases > 0) %>% 
+  arrange(state1, date)
+# daily_cases_region %>% filter(cases == max(cases))
 
-daily_cases_region %>% filter(cases == max(cases))
 # plotting parameters
 size_brks <- case_breaks(daily_cases_region %>% pull(cases))  # breaks
+# x <- daily_cases_region %>% pull(cases)
+# size_brks <- as.integer(10^(1:ceiling(log10(max(x)))))
 # valid_states <- unique(county_cases$state1)
 # states <- states %>%
 #   mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
@@ -111,10 +170,10 @@ p1 <- ggplot(states) + geom_sf() +
   geom_point(data = daily_cases_region, aes(x = x, y = y, size = cases),
              shape = 16, stroke = FALSE, color = "red3") +
   xlab("") + ylab("") + ggtitle("Cases reported by county") +
-  scale_size_continuous(name = "Cases", limits = range(size_brks),
+  scale_size_continuous(name = "Cases", limits = c(1, max(size_brks)),
                         breaks = size_brks) +
-  coord_sf(xlim = city_box[c(1, 3)] + c(-0.5, 0.5),
-           ylim = city_box[c(2, 4)] + c(0.5, -0.5)) +
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.2, 0.2),
+           ylim = city_box[c(2, 4)] + c(0.2, -0.2)) +
   guides(color = guide_colourbar(order = 1),
          size = guide_legend(order = 2)) +
   theme_minimal()
@@ -146,33 +205,48 @@ state_abbrevs <- lapply(states_in_buffers, function(x) {
 case_rates <- lapply(c(1, 4), function(x) {  # x <- 4
   state_cases %>% filter(state1 %in% !!states_in_buffers[[x]]) %>%
     group_by(date) %>%
-    summarize(cases = sum(cases)) %>%
+    summarize(cases = sum(cases), deaths = sum(deaths)) %>%
     mutate(states = paste(state_abbrevs[[x]], collapse = "-")) %>%
     mutate(radius = paste0("~", x, "00 km")) %>%
-    dplyr::select(radius, states, date, cases)
+    dplyr::select(radius, states, date, cases, deaths)
 }) %>% do.call(rbind, .)
 
 ylimit <- max(case_rates$cases)
-p3 <- case_rates %>%
-  filter(date > "2020-03-01" & radius %in% paste0("~", c(1, 4), "00 km")) %>%
-  ggplot() + geom_line(aes(x = date, y = cases, color = states)) +
-  ylim(0, ylimit) + ggtitle("Cases within region") +
-  scale_color_manual(name = "Region", values = c("red", "blue")) +
-  scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
-  theme_minimal()
+# p3 <- case_rates %>%
+#   filter(date > "2020-03-01" & radius %in% paste0("~", c(1, 4), "00 km")) %>%
+#   ggplot() + geom_line(aes(x = date, y = cases, color = states)) +
+#   ylim(0, ylimit) + ggtitle("Cases within region") +
+#   scale_color_manual(name = "Region", values = c("red", "blue")) +
+#   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+#   theme_minimal()
 
 # rate plot, all states in 2 degree radius
 pal2 <- c("purple", "blue4", "blue1", "lightblue", "orange", "red1", "red4")
-p4 <- state_cases %>%
+p3 <- state_cases %>%
   filter(state1 %in% states_in_buffers[[2]]) %>%
   filter(date > lubridate::ymd("2020-03-01")) %>%
   ggplot() + geom_line(aes(date, cases, color = state1)) +
   ylim(0, ylimit) +
   xlab("") + ylab("Cases") +
   ggtitle("Cases per state") +
-  scale_color_manual(name = "", values = pal2) + 
+  scale_color_manual(name = "", values = pal2) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+  # scale_y_continuous(trans = "log10") +
   theme_minimal()
+
+ylimit <- max(case_rates$deaths)
+p4 <- state_cases %>%
+  filter(state1 %in% states_in_buffers[[2]]) %>%
+  filter(date > lubridate::ymd("2020-03-01")) %>%
+  ggplot() + geom_line(aes(date, deaths, color = state1)) +
+  ylim(0, ylimit) +
+  xlab("") + ylab("Deaths") +
+  ggtitle("Deaths per state") +
+  scale_color_manual(name = "", values = pal2) +
+  scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+  # scale_y_continuous(trans = "log10") +
+  theme_minimal()
+
 
 op <- (p1 + p2) / (p3 + p4)
 f <- here::here("vignettes/figures/case_maps.png")

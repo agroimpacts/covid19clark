@@ -2,9 +2,9 @@
 % Please edit documentation in R/get_jhu_daily.R
 \name{get_jhu_daily}
 \alias{get_jhu_daily}
-\title{Read in daily case data from JHU COVID-19 web-data respository}
+\title{Read in daily case data from JHU COVID-19 daily reports repository}
 \usage{
-get_jhu_daily(write = FALSE, filepath = NULL)
+get_jhu_daily(download_date = NULL, write = FALSE, filepath = NULL)
 }
 \arguments{
 \item{write}{If TRUE, writes output as csv to filepath. Defaults to FALSE}
@@ -15,12 +15,12 @@ get_jhu_daily(write = FALSE, filepath = NULL)
 Long format database of time cases, recoveries, deaths
 }
 \description{
-Read in daily case data from JHU COVID-19 web-data respository
+Read in daily case data from JHU COVID-19 daily reports repository
 }
 \details{
-Downloads daily data from JHU Corona virus repo (web-data branch).
+Downloads daily data from JHU Corona virus repo (master branch).
 Data source: https://github.com/CSSEGISandData/COVID-19. If write = TRUE and
-fielpath = NULL, a covid19_daily_cases.csv will be written to the current
+fielpath = NULL, a covid19_daily_reports.csv will be written to the current
 directory.
 }
 \examples{

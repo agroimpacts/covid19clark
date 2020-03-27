@@ -2,27 +2,27 @@
 # source: https://github.com/CSSEGISandData/COVID-19
 # code adapted from: https://github.com/RamiKrispin/coronavirus
 `%>%` <- magrittr::`%>%`
-f <- here::here("inst/extdata/covid19_ts.csv")
-cases <- covid19clark::get_jhu_ts(write = TRUE, filepath = f)
+
+# switched off for now because of change in dataset
+# f <- here::here("inst/extdata/covid19_ts.csv")
+# cases <- covid19clark::get_jhu_ts(write = TRUE, filepath = f)
 
 # daily cases
-# Get latest Mass DPH case reports
 previous_cases <- readr::read_csv(
-  system.file("extdata/covid19_daily_archive.csv", package = "covid19clark")
+  system.file("extdata/covid19_daily_reports.csv", package = "covid19clark"),
+  col_types = cols(fips = col_character(), admin2 = col_character(),
+                   key = col_character())  # prevent coercion to logical bc NA
 )
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 
 # read new mass cases. This should fail silently if there aren't any
-f <- here::here("inst/extdata/covid19_daily.csv")
-try(daily_cases <- covid19clark::get_jhu_daily(write = TRUE, filepath = f),
-    silent = TRUE)
+try(daily_cases <- covid19clark::get_jhu_daily(write = FALSE), silent = TRUE)
 
 # append to archive
-f <- here::here("inst/extdata/covid19_daily_archive.csv")
+f <- here::here("inst/extdata/covid19_daily_reports.csv")
 if(exists("daily_cases")) {
   if(max(daily_cases$date) > max(previous_cases$date)) {
     updated_cases <- dplyr::bind_rows(previous_cases, daily_cases)
-    readr::write_csv(updated_cases,
-                     path = )
+    readr::write_csv(updated_cases, path = f)
   }
 }
