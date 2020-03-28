@@ -10,8 +10,9 @@
 # daily cases
 previous_cases <- readr::read_csv(
   system.file("extdata/covid19_daily_reports.csv", package = "covid19clark"),
+  # prevent coercion to logical bc NA
   col_types = cols(fips = col_character(), admin2 = col_character(),
-                   key = col_character())  # prevent coercion to logical bc NA
+                   key = col_character(), active = col_double())
 )
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 
