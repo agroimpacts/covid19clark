@@ -31,6 +31,8 @@ get_jhu_webdata_daily <- function(write = FALSE, filepath = NULL) {
 }
 
 #' Read in daily case data from JHU COVID-19 daily reports repository
+#' @param download_date Default of NULL gives today's date, otherwise specify as
+#' "dd-mm-yyyy"
 #' @param write If TRUE, writes output as csv to filepath. Defaults to FALSE
 #' @param filepath Provide filename and path to write to.
 #' @return Long format database of time cases, recoveries, deaths
@@ -40,6 +42,7 @@ get_jhu_webdata_daily <- function(write = FALSE, filepath = NULL) {
 #' directory.
 #' @importFrom magrittr `%>%`
 #' @importFrom dplyr select rename_all mutate bind_cols as_tibble
+#' @importFrom lubridate as_date mdy_hm
 #' @examples
 #' cases <- get_jhu_daily()
 #' cases <- get_jhu_daily(write = TRUE)

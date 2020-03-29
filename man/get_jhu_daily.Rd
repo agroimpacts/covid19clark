@@ -7,6 +7,9 @@
 get_jhu_daily(download_date = NULL, write = FALSE, filepath = NULL)
 }
 \arguments{
+\item{download_date}{Default of NULL gives today's date, otherwise specify as
+"dd-mm-yyyy"}
+
 \item{write}{If TRUE, writes output as csv to filepath. Defaults to FALSE}
 
 \item{filepath}{Provide filename and path to write to.}

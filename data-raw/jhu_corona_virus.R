@@ -11,19 +11,32 @@
 previous_cases <- readr::read_csv(
   system.file("extdata/covid19_daily_reports.csv", package = "covid19clark"),
   # prevent coercion to logical bc NA
-  col_types = cols(fips = col_character(), admin2 = col_character(),
-                   key = col_character(), active = col_double())
+  col_types = readr::cols(fips = readr::col_character(),
+                          admin2 = readr::col_character(),
+                          key = readr::col_character(),
+                          active = readr::col_double())
 )
+previous_cases <- previous_cases %>% filter(date != max(date))
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 
 # read new mass cases. This should fail silently if there aren't any
+# daily_cases <- covid19clark::get_jhu_daily(download_date = "03-28-2020",
+#                                            write = FALSE)
+
 try(daily_cases <- covid19clark::get_jhu_daily(write = FALSE), silent = TRUE)
 
 # append to archive
 f <- here::here("inst/extdata/covid19_daily_reports.csv")
 if(exists("daily_cases")) {
   if(max(daily_cases$date) > max(previous_cases$date)) {
+
+    # write to daily_reports updated
     updated_cases <- dplyr::bind_rows(previous_cases, daily_cases)
     readr::write_csv(updated_cases, path = f)
+
+    # run cleaning for US cases
+    us_cases_all <- covid19clark::us_cases(updated_cases)
+    save(us_cases_all, file = here::here("data/us_cases_daily.rda"))
   }
 }
+
