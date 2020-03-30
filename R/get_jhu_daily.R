@@ -80,7 +80,7 @@ get_jhu_daily <- function(download_date = NULL, write = FALSE,
       data.frame() %>% as_tibble() %>% rename_all(vars(missing_col_names))
     cases <- bind_cols(cases, newcols)
   }
-  cases <- cases %>% select(!!varpats$replace)
+  cases <- cases %>% select(!!varpats$replace) %>% select(-active)
 
   # fix bad dates
   if(is.character(cases$date)) {

@@ -1,13 +1,12 @@
 library(lubridate)
 library(dplyr)
 
-dvec <- paste0("03-", sprintf("%02i", 1:25), "-2020")
+dvec <- paste0("03-", sprintf("%02i", 1:28), "-2020")
 
 daily_reports <- lapply(dvec, function(x) {
-  get_jhu_daily(download_date = x, write = FALSE)
+  covid19clark::get_jhu_daily(download_date = x, write = FALSE)
 })
-daily_reports_all <- do.call(rbind, daily_reports) %>%
-  dplyr::select(-active) %>% arrange(date, country)
+daily_reports_all <- do.call(rbind, daily_reports) %>% arrange(date, country)
 # daily_reports_all[1, c("fips", "admin2", "key")] <- "NA"
 
 readr::write_csv(daily_reports_all,

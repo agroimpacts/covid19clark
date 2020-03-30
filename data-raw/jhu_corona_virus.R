@@ -13,10 +13,9 @@ previous_cases <- readr::read_csv(
   # prevent coercion to logical bc NA
   col_types = readr::cols(fips = readr::col_character(),
                           admin2 = readr::col_character(),
-                          key = readr::col_character(),
-                          active = readr::col_double())
+                          key = readr::col_character())
 )
-previous_cases <- previous_cases %>% filter(date != max(date))
+# previous_cases <- previous_cases %>% filter(date != max(date))
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 
 # read new mass cases. This should fail silently if there aren't any
@@ -32,11 +31,12 @@ if(exists("daily_cases")) {
 
     # write to daily_reports updated
     updated_cases <- dplyr::bind_rows(previous_cases, daily_cases)
+    # updated_cases <- previous_cases
     readr::write_csv(updated_cases, path = f)
 
     # run cleaning for US cases
-    us_cases_all <- covid19clark::us_cases(updated_cases)
-    save(us_cases_all, file = here::here("data/us_cases_daily.rda"))
+    us_cases_daily <- covid19clark::us_cases(updated_cases)
+    save(us_cases_daily, file = here::here("data/us_cases_daily.rda"))
   }
 }
 
