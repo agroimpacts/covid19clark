@@ -2,6 +2,7 @@
 # source: https://github.com/CSSEGISandData/COVID-19
 # code adapted from: https://github.com/RamiKrispin/coronavirus
 `%>%` <- magrittr::`%>%`
+library(lubridate)
 
 # switched off for now because of change in dataset
 # f <- here::here("inst/extdata/covid19_ts.csv")
