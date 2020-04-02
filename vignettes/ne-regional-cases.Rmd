@@ -107,7 +107,7 @@ size_brks <- round(case_breaks(daily_cases_region %>% pull(case_rate)), 2)
 # states <- states %>%
 #   mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
 pal <- "RdYlBu"  # color palette
-city_box <- st_bbox(city_buffers[[2]])
+city_box <- st_bbox(city_buffers[[3]])
 
 # ggplot(daily_cases_region) + 
 #   geom_sf(aes(fill = case_rate)) +
@@ -119,14 +119,14 @@ as_tibble(daily_cases_region) %>% filter(death_rate < 0.01) %>%
 
 # plot
 p1 <- ggplot(us_counties) + geom_sf(fill = "grey80", lwd = 0.3) +
-  geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
+  geom_sf(data = focal_city, col = "blue1", shape = 3, size = 2) +
   geom_sf(data = us_states, col = "black", fill = "transparent") + 
   geom_point(data = as_tibble(daily_cases_region), 
              aes(x = x, y = y, size = case_rate),
-             shape = 1, color = "purple") +
+             shape = 1, color = "red") +
   geom_point(data = as_tibble(daily_cases_region), 
              aes(x = x, y = y, size = death_rate),
-             shape = 16, stroke = FALSE, color = "red1") +
+             shape = 16, stroke = FALSE, color = "yellow") +
   xlab("") + ylab("") + ggtitle("Cases reported by county") +
   scale_size_continuous(name = "Per 1000", 
                         limits = c(0.001, max(size_brks)),
