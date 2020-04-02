@@ -1,7 +1,7 @@
 library(lubridate)
 library(dplyr)
 
-dvec <- paste0("03-", sprintf("%02i", 1:28), "-2020")
+dvec <- paste0("03-", sprintf("%02i", 1:30), "-2020")
 
 daily_reports <- lapply(dvec, function(x) {
   covid19clark::get_jhu_daily(download_date = x, write = FALSE)
