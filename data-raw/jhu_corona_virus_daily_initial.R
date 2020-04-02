@@ -1,7 +1,8 @@
 library(lubridate)
 library(dplyr)
 
-dvec <- paste0("03-", sprintf("%02i", 1:25), "-2020")
+dvec <- c(paste0("03-", sprintf("%02i", 1:25), "-2020"),
+          paste0("04-", sprintf("%02i", 1), "-2020"))
 
 daily_reports <- lapply(dvec, function(x) {
   get_jhu_daily(download_date = x, write = FALSE)

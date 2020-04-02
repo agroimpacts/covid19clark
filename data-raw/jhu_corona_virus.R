@@ -14,8 +14,7 @@ previous_cases <- readr::read_csv(
   # prevent coercion to logical bc NA
   col_types = readr::cols(fips = readr::col_character(),
                           admin2 = readr::col_character(),
-                          key = readr::col_character(),
-                          active = readr::col_double())
+                          key = readr::col_character())
 )
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 
