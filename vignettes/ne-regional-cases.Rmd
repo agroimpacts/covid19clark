@@ -34,6 +34,8 @@ library(covid19clark)
 # data("counties", package = "covid19clark")
 # data("states", package = "covid19clark")
 data("us_cases_daily")
+data("us_counties")
+data("us_states")
 # previous_cases
 
 ```
