@@ -41,7 +41,9 @@ get_jhu_webdata_daily <- function(write = FALSE, filepath = NULL) {
 #' fielpath = NULL, a covid19_daily_reports.csv will be written to the current
 #' directory.
 #' @importFrom magrittr `%>%`
-#' @importFrom dplyr select rename_all mutate bind_cols as_tibble
+#' @importFrom tidyr tibble
+#' @importFrom dplyr select rename_all mutate bind_cols as_tibble group_by
+#' ungroup summarize
 #' @importFrom lubridate as_date mdy_hm
 #' @examples
 #' cases <- get_jhu_daily()

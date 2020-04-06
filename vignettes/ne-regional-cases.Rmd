@@ -49,7 +49,7 @@ us_cases_daily$county %>% filter(state2 == "ma") %>%
 us_cases_daily$state %>% filter(state2 == "ma") %>% 
   filter(date == max(date)) %>% summarize(sum(cases))
 
-# compare against DPH county numbers for 3/31--checks out for state
+# compare against DPH county numbers for 4/4--checks out for state
 ```
 
 ## Regionalization
@@ -57,7 +57,6 @@ We define a focal city (Worcester), and then figure out which states fall within
 ```{r, message=FALSE, warning=FALSE}
 # select city
 focal_city <- focal_point("Worcester", "USA")
-st_transform(focal_city, crs = 102008)
 
 # buffer and focal city
 city_buffers <- lapply(seq(100, 400, 100) * 1000, function(x) {
@@ -75,16 +74,15 @@ states_in_buffers <- lapply(city_buffers, function(x) {
 ## Plots
 ```{r, message=FALSE, warning=FALSE}
 # function to define breaks for bubble legend
-case_breaks <- function(x) {
-  size_brks <- seq(min(x), max(x), round(max(x) / 5))
-  if(max(size_brks) < max(x)) {
-    size_brks <- c(size_brks, max(x))
-  } else{
-    size_brks
-  }
-  return(size_brks)
+# x <- daily_cases_region %>% pull(case_rate)
+# base <- 5
+# nbreaks <- 5
+case_breaks <- function(x, base = 5, nbreaks = 5) {
+  rng <- c(0.0, max(x) + (base - max(x) %% base))
+  brks <- seq(rng[1], rng[2], diff(rng) / 4)
+  brks[1] <- 0.01
+  return(brks)
 }
-
 
 # plots
 # plot 1: County case map, for counties within 200 km radius
@@ -96,28 +94,12 @@ daily_cases_region <- us_cases_daily$county %>% filter(!is.na(state1)) %>%
   select(state1, state2, county.x, x, y, date, cases, deaths, pop, 
          case_rate, death_rate)
 
-# daily_cases_region %>% filter(case_rate == max(case_rate))
-# daily_cases_region %>% filter(cases == max(cases))
-
-
 # plotting parameters
 size_brks <- round(case_breaks(daily_cases_region %>% pull(case_rate)), 2)  
 
-# x <- daily_cases_region %>% pull(cases)
-# size_brks <- as.integer(10^(1:ceiling(log10(max(x)))))
-# valid_states <- unique(county_cases$state1)
-# states <- states %>%
-#   mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
-pal <- "RdYlBu"  # color palette
 city_box <- st_bbox(city_buffers[[3]])
 
-# ggplot(daily_cases_region) + 
-#   geom_sf(aes(fill = case_rate)) +
-#   xlab("") + ylab("") + ggtitle("Cases reported by county")
-pal <- RColorBrewer::brewer.pal(9, "Reds")
-
-as_tibble(daily_cases_region) %>% filter(death_rate < 0.01) %>% 
-  select(case_rate, death_rate)
+# pal <- RColorBrewer::brewer.pal(9, "Reds")
 
 # plot
 p1 <- ggplot(us_counties) + geom_sf(fill = "grey80", lwd = 0.3) +
@@ -125,44 +107,66 @@ p1 <- ggplot(us_counties) + geom_sf(fill = "grey80", lwd = 0.3) +
   geom_sf(data = us_states, col = "black", fill = "transparent") + 
   geom_point(data = as_tibble(daily_cases_region), 
              aes(x = x, y = y, size = case_rate),
-             shape = 1, color = "red") +
+             shape = 1, color = "yellow") +
   geom_point(data = as_tibble(daily_cases_region), 
              aes(x = x, y = y, size = death_rate),
-             shape = 16, stroke = FALSE, color = "yellow") +
+             shape = 16, stroke = FALSE, color = "red") +
   xlab("") + ylab("") + ggtitle("Cases reported by county") +
   scale_size_continuous(name = "Per 1000", 
                         limits = c(0.001, max(size_brks)),
                         breaks = size_brks) +
-  # scale_fill_gradient(name = "Cases per 1000", #low = pal[1], high = pal[9],
-  #                     breaks = log10(size_brks), 
-  #                     limits = c(0, max(size_brks))) +
   coord_sf(xlim = city_box[c(1, 3)] + c(-0.2, 0.2),
            ylim = city_box[c(2, 4)] + c(0.2, -0.2)) +
-  guides(color = guide_colourbar(order = 1),
-         fill = guide_legend(order = 2)) +
-  theme_minimal()
+  guides(color = guide_legend(order = 1), fill = guide_legend(order = 2)) + 
+  theme_minimal() + 
+  annotate("rect", xmin = -69, xmax = 69.8, ymin = 41.7, ymax = 42.5, 
+           fill = "grey") +
+  annotate("text", x = -68.6, y = 42.3, label = "Deaths", hjust = 0) + 
+  annotate("point", x = -68.8, y = 42.3, color = "red", shape = 16, size = 3) +
+  annotate("text", x = -68.6, y = 41.9, label = "Cases", hjust = 0) + 
+  annotate("point", x = -68.8, y = 41.9, color = "yellow", shape = 1, 
+           size = 3) + 
+  theme(legend.key = element_rect(fill = "grey", linetype = 0))
 p1
 
 ## plot 2
-state_cases_recent <- state_cases %>% group_by(state1) %>%
+state_cases_region <- us_cases_daily$state %>% group_by(state1) %>%
   filter(state1 %in% states_in_buffers[[4]]) %>%
+  arrange(state1, date) %>% 
+  mutate(case_rate = cases / (pop / 1000), 
+         death_rate = deaths / (pop / 1000)) %>% 
+  select(state1, state2, x, y, date, cases, deaths, pop, 
+         case_rate, death_rate) %>% 
   filter(date == max(date))
 state_box <- states %>%
-  filter(state %in% states_in_buffers[[2]]) %>% st_bbox()
+  filter(state %in% states_in_buffers[[3]]) %>% st_bbox()
 size_brks <- case_breaks(state_cases_recent %>% pull(cases))
 
 p2 <- ggplot(states) + geom_sf() +
-  geom_point(data = state_cases_recent, aes(x = x, y = y, size = cases),
+  geom_point(data = state_cases_region, aes(x = x, y = y, size = cases),
              shape = 16, stroke = FALSE, color = "red3") +
   geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
   ggtitle("Cases reported by state") +
-  scale_size_continuous(name = "Cases", limits = range(size_brks),
-                        breaks = size_brks) +
+  geom_point(data = as_tibble(state_cases_region), 
+             aes(x = x, y = y, size = case_rate),
+             shape = 1, color = "yellow") +
+  geom_point(data = as_tibble(state_cases_region), 
+             aes(x = x, y = y, size = death_rate),
+             shape = 16, stroke = FALSE, color = "red") +
   coord_sf(xlim = state_box[c(1, 3)] + c(-0.5, 0.5),
            ylim = state_box[c(2, 4)]) +
   guides(color = guide_colourbar(order = 1),
          size = guide_legend(order = 2)) +
-  theme_minimal()
+    annotate("rect", xmin = -69, xmax = 69.8, ymin = 41.7, ymax = 42.5, 
+           fill = "grey") +
+  annotate("text", x = -68.6, y = 42.3, label = "Deaths", hjust = 0) + 
+  annotate("point", x = -68.8, y = 42.3, color = "red", shape = 16, size = 3) +
+  annotate("text", x = -68.6, y = 41.9, label = "Cases", hjust = 0) + 
+  annotate("point", x = -68.8, y = 41.9, color = "yellow", shape = 1, 
+           size = 3) + 
+  theme_minimal() + 
+  theme(legend.key = element_rect(fill = "grey", linetype = 0))
+p2
 
 state_abbrevs <- lapply(states_in_buffers, function(x) {
   state_names %>% filter(state1 %in% x) %>% pull(state2)
