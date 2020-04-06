@@ -7,10 +7,16 @@ A very limited `R` package for mapping daily changes in the number of COVID-19 c
 
 **Last update**: `r lubridate::now()`
 ```{r, echo=FALSE, out.width='100%'}
-knitr::include_graphics("vignettes/figures/case_maps.png")
+knitr::include_graphics("vignettes/figures/case_maps2.png")
 ```
 
 ## Notes
+**Updates 6 April 2020**:
+
+  - Function added to process US cases and merge with US census data
+  - Maps now presented for cases and deaths, as N per 1000 people and total numbers
+  - State-wise cases and deaths presented on log 10 scale 
+
 **Updates 26 March 2020**:
 
 - Switched to read JHU [daily reports](https://github.com/CSSEGISandData/COVID-19/tree/master/csse_covid_19_data/csse_covid_19_daily_reports) exclusively. JHU time series now only summarizes for country level as of 22/3, [per notice](https://github.com/CSSEGISandData/COVID-19/issues/1250). These data are in a different format prior to 22/3. The earlier parts of the time series jump around more than in previous versions.

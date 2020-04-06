@@ -31,85 +31,21 @@ library(patchwork)
 library(covid19clark)
 
 # county and state maps
-# data("counties", package = "covid19clark")
-data("states", package = "covid19clark")
-
-# case data
-f <- system.file("extdata/covid19_daily_reports.csv", package = "covid19clark")
-jhu_cases <- read_csv(
-  f, col_types = cols(fips = col_character(), admin2 = col_character(),
-                      key = col_character())
-) %>% filter(country == "US") 
-pat <- "Unassigned Location|Grand Princess|Diamond Princess"
-jhu_cases <- jhu_cases %>% select(-fips, -country) %>% 
-  mutate(county = ifelse(grepl(",", prov), gsub(",.*", "", prov), NA)) %>% 
-  mutate(state = ifelse(grepl(",", prov), gsub(".*, ", "", prov), prov)) %>% 
-  mutate(county = gsub(" County", "", county)) %>% 
-  mutate(state = tolower(gsub(" \\(From Diamond Princess\\)", "", state))) %>% 
-  mutate(state = ifelse(state == "d.c.", "dc", state)) %>% 
-  filter(!grepl(pat, state, ignore.case = TRUE)) %>% 
-  mutate(county = ifelse(is.na(county), admin2, county)) %>%
-  dplyr::select(admin2, county, prov, state, key, x, y, date, cases, deaths)  
-
-# vector of state names for matching
-state_names <- tibble(state1 = state.name, state2 = state.abb) %>%
-  mutate(state1 = tolower(state1)) %>% 
-  bind_rows(., tibble(state1 = "district of columbia", state2 = "DC"))
-# jhu_cases %>% filter(grepl("d.c.", state, ignore.case = TRUE)) %>% view
-
-# fix mismatching states, etc (not thoroughly checked yet)
-jhu_fix_state_abbrev <- jhu_cases %>% filter(nchar(state) < 4) %>% 
-  rename(state2 = state) %>%
-  left_join(., state_names %>% mutate(state2 = tolower(state2))) %>% 
-  select(state1, state2, admin2, prov, county, key, x, y, date, cases, deaths)
-jhu_full_state_names <- jhu_cases %>% filter(nchar(state) > 3) %>% 
-  rename(state1 = state) %>%
-  left_join(., state_names) %>%
-  mutate(state2 = tolower(state2)) %>% 
-  select(state1, state2, admin2, prov, county, key, x, y, date, cases, deaths)  
-# jhu_full_state_names %>% filter(state2 == "dc")  
-
-jhu_cases_all <- bind_rows(jhu_fix_state_abbrev, jhu_full_state_names) %>% 
-  arrange(date, state1, county) %>% mutate(county = tolower(county))
-jhu_cases_all %>% filter(state2 == "ma") %>%
-  filter((x == 0 & y == 0) | is.na(x))
-
-# jhu_cases_all %>% filter(state2 == "ma") %>% #filter(is.na(county)) %>% 
-#   group_by(date) %>% 
-#   summarize(cases = sum(cases))
-
-# state cases
-state_cases <- jhu_cases_all %>% 
-  group_by(state1, date) %>%
-  summarize(cases = sum(cases), deaths = sum(deaths), state2 = unique(state2),
-            x = mean(x, na.rm = TRUE), y = mean(y, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  dplyr::select(state1, state2, date, cases, deaths)
-as_tibble(states) %>% select(state, x, y) %>% 
-  left_join(state_cases, ., by = c("state1" = "state")) -> state_cases
-
-# state_cases %>% group_by(state1, date) %>% count() %>% filter(n > 1)
-
-# # county cases
-# f <- system.file("extdata/covid19_daily.csv", package = "covid19clark")
-# daily_cases <- read_csv(f) %>% filter(ctry == "US") %>% 
-daily_cases <- jhu_cases_all %>%
-  filter(!grepl("unknown|unassigned", county, ignore.case = TRUE)) %>% 
-  filter(!is.na(county)) %>% filter(!(x == 0 & y == 0) | !is.na(x)) %>% 
-  group_by(state1, county, date) %>%
-  mutate(cases = cumsum(cases), deaths = sum(deaths)) %>% 
-  ungroup() %>% 
-  dplyr::select(state1, state2, county, x, y, date, cases, deaths)
+data("us_cases_daily")
+data("us_counties")
+data("us_states")
 ```
 
 ```{r, echo=FALSE, eval=FALSE}
 # checks
-daily_cases %>% filter(state2 == "ma") %>% filter(date == max(date)) %>%
-  summarize(sum(cases))
-daily_cases %>% filter(state2 == "ma") %>%  filter(grepl("worc", county))
+us_cases_daily$county %>% filter(state2 == "ma") %>% 
+  filter(date == max(date)) %>% summarize(sum(cases))
+us_cases_daily$county %>% filter(state2 == "ma") %>% 
+  filter(date == max(date)) %>% view
+us_cases_daily$state %>% filter(state2 == "ma") %>% 
+  filter(date == max(date)) %>% summarize(sum(cases))
 
-# compare against DPH county numbers for 3/24--checks out
-daily_cases %>% filter(state2 == "ma") %>% filter((x == 0 & y == 0) | is.na(x))
+# compare against DPH county numbers for 4/4--checks out for state
 ```
 
 ## Regionalization
@@ -117,7 +53,6 @@ We define a focal city (Worcester), and then figure out which states fall within
 ```{r, message=FALSE, warning=FALSE}
 # select city
 focal_city <- focal_point("Worcester", "USA")
-st_transform(focal_city, crs = 102008)
 
 # buffer and focal city
 city_buffers <- lapply(seq(100, 400, 100) * 1000, function(x) {
@@ -135,122 +70,161 @@ states_in_buffers <- lapply(city_buffers, function(x) {
 ## Plots
 ```{r, message=FALSE, warning=FALSE}
 # function to define breaks for bubble legend
-case_breaks <- function(x) {
-  size_brks <- seq(min(x), max(x), round(max(x) / 5))
-  if(max(size_brks) < max(x)) {
-    size_brks <- c(size_brks, max(x))
-  } else{
-    size_brks
-  }
-  return(size_brks)
+# x <- daily_cases_region %>% pull(case_rate)
+# base <- 5
+# nbreaks <- 5
+case_breaks <- function(x, min_cases, base = 5, nbreaks = 5) {
+  rng <- c(0.0, max(x) + (base - max(x) %% base))
+  brks <- seq(rng[1], rng[2], diff(rng) / nbreaks)
+  brks[1] <- min_cases
+  return(brks)
 }
 
 # plots
 # plot 1: County case map, for counties within 200 km radius
-daily_cases_region <- daily_cases %>% 
-  filter(state1 %in% states_in_buffers[[2]] & date == max(date)) %>%
-  filter(cases > 0) %>% 
-  arrange(state1, date)
-# daily_cases_region %>% filter(cases == max(cases))
+daily_cases_region <- us_cases_daily$county %>% filter(!is.na(state1)) %>% 
+  filter(state1 %in% states_in_buffers[[3]] & date == max(date)) %>%
+  arrange(state1, date) %>% 
+  mutate(case_rate = cases / (pop / 1000), 
+         death_rate = deaths / (pop / 1000)) %>% 
+  select(state1, state2, county.x, x, y, date, cases, deaths, pop, 
+         case_rate, death_rate)
+
+# pal <- RColorBrewer::brewer.pal(9, "Reds")
+case_legend <- function(x) {
+  x + 
+  annotate("rect", xmin = -69, xmax = 69.8, ymin = 41.7, ymax = 42.5, 
+           fill = "grey") +
+  annotate("text", x = -68.6, y = 42.3, label = "Deaths", hjust = 0) + 
+  annotate("point", x = -68.8, y = 42.3, color = "red", shape = 16, size = 3) +
+  annotate("text", x = -68.6, y = 41.9, label = "Cases", hjust = 0) + 
+  annotate("point", x = -68.8, y = 41.9, color = "yellow", shape = 1, 
+           size = 3)
+}
 
 # plotting parameters
-size_brks <- case_breaks(daily_cases_region %>% pull(cases))  # breaks
-# x <- daily_cases_region %>% pull(cases)
-# size_brks <- as.integer(10^(1:ceiling(log10(max(x)))))
-# valid_states <- unique(county_cases$state1)
-# states <- states %>%
-#   mutate(Complete = ifelse(state %in% valid_states, "yes", "no"))
-pal <- "RdYlBu"  # color palette
-city_box <- st_bbox(city_buffers[[2]])
+size_brks <- daily_cases_region %>% pull(case_rate) %>% 
+  case_breaks(., 0.01, base = 5, nbreaks = 5) %>% round(., 2)
+# size_brks <- round(case_breaks(daily_cases_region %>% pull(case_rate)), 2)  
+city_box <- st_bbox(city_buffers[[3]])
+
 
 # plot
-p1 <- ggplot(states) + geom_sf() +
-  scale_fill_manual(values = c("grey50", "grey")) +
-  geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
-  geom_point(data = daily_cases_region, aes(x = x, y = y, size = cases),
-             shape = 16, stroke = FALSE, color = "red3") +
-  xlab("") + ylab("") + ggtitle("Cases reported by county") +
-  scale_size_continuous(name = "Cases", limits = c(1, max(size_brks)),
+p1 <- ggplot(us_counties) + geom_sf(fill = "grey80", lwd = 0.3) +
+  geom_sf(data = focal_city, col = "blue1", shape = 3, size = 2) +
+  geom_sf(data = us_states, col = "black", fill = "transparent") + 
+  geom_point(data = as_tibble(daily_cases_region), 
+             aes(x = x, y = y, size = case_rate),
+             shape = 1, color = "yellow") +
+  geom_point(data = as_tibble(daily_cases_region), 
+             aes(x = x, y = y, size = death_rate),
+             shape = 16, stroke = FALSE, color = "red") +
+  xlab("") + ylab("") + ggtitle("Case and deaths per 1000 people") +
+  scale_size_continuous(name = "N per 1000", 
+                        limits = range(size_brks),
                         breaks = size_brks) +
-  coord_sf(xlim = city_box[c(1, 3)] + c(-0.2, 0.2),
-           ylim = city_box[c(2, 4)] + c(0.2, -0.2)) +
-  guides(color = guide_colourbar(order = 1),
-         size = guide_legend(order = 2)) +
-  theme_minimal()
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.1, 0.1),
+           ylim = city_box[c(2, 4)] + c(0.1, -0.1)) +
+  theme_minimal() + 
+  theme(legend.key = element_rect(fill = "grey", linetype = 0))
+p1 <- p1 %>% case_legend(.)
 
-## plot 2
-state_cases_recent <- state_cases %>% group_by(state1) %>%
-  filter(state1 %in% states_in_buffers[[4]]) %>%
-  filter(date == max(date))
-state_box <- states %>%
-  filter(state %in% states_in_buffers[[2]]) %>% st_bbox()
-size_brks <- case_breaks(state_cases_recent %>% pull(cases))
-
-p2 <- ggplot(states) + geom_sf() +
-  geom_point(data = state_cases_recent, aes(x = x, y = y, size = cases),
-             shape = 16, stroke = FALSE, color = "red3") +
-  geom_sf(data = focal_city, col = "black", shape = 3, size = 2) +
-  ggtitle("Cases reported by state") +
-  scale_size_continuous(name = "Cases", limits = range(size_brks),
+# size_brks <- as.integer(10^(0:5))
+size_brks <- daily_cases_region %>% pull(cases) %>%
+  case_breaks(., 1, base = 1000, nbreaks = 5) %>% round(., 2)
+size_brks <- c(size_brks[1], 100, 1000, 10000, 50000, 
+               size_brks[length(size_brks)])
+p2 <- ggplot(us_counties) + geom_sf(fill = "grey80", lwd = 0.3) +
+  geom_sf(data = focal_city, col = "blue1", shape = 3, size = 2) +
+  geom_sf(data = us_states, col = "black", fill = "transparent") + 
+  geom_point(data = as_tibble(daily_cases_region), 
+             aes(x = x, y = y, size = cases),
+             shape = 1, color = "yellow") +
+  geom_point(data = as_tibble(daily_cases_region), 
+             aes(x = x, y = y, size = deaths),
+             shape = 16, stroke = FALSE, color = "red") +
+  xlab("") + ylab("") + ggtitle("Total cases and deaths") +
+  scale_size_continuous(name = "N", 
+                        limits = c(0.001, max(size_brks)),
                         breaks = size_brks) +
-  coord_sf(xlim = state_box[c(1, 3)] + c(-0.5, 0.5),
-           ylim = state_box[c(2, 4)]) +
-  guides(color = guide_colourbar(order = 1),
-         size = guide_legend(order = 2)) +
-  theme_minimal()
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.1, 0.1),
+           ylim = city_box[c(2, 4)] + c(0.1, -0.1)) +
+  theme_minimal() + 
+  theme(legend.key = element_rect(fill = "grey", linetype = 0))
+p2 <- p2 %>% case_legend(.)
 
-state_abbrevs <- lapply(states_in_buffers, function(x) {
-  state_names %>% filter(state1 %in% x) %>% pull(state2)
-})
-case_rates <- lapply(c(1, 4), function(x) {  # x <- 4
-  state_cases %>% filter(state1 %in% !!states_in_buffers[[x]]) %>%
-    group_by(date) %>%
-    summarize(cases = sum(cases), deaths = sum(deaths)) %>%
-    mutate(states = paste(state_abbrevs[[x]], collapse = "-")) %>%
-    mutate(radius = paste0("~", x, "00 km")) %>%
-    dplyr::select(radius, states, date, cases, deaths)
-}) %>% do.call(rbind, .)
-
-ylimit <- max(case_rates$cases)
-# p3 <- case_rates %>%
-#   filter(date > "2020-03-01" & radius %in% paste0("~", c(1, 4), "00 km")) %>%
-#   ggplot() + geom_line(aes(x = date, y = cases, color = states)) +
-#   ylim(0, ylimit) + ggtitle("Cases within region") +
-#   scale_color_manual(name = "Region", values = c("red", "blue")) +
-#   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
-#   theme_minimal()
 
 # rate plot, all states in 2 degree radius
+state_cases_region <- us_cases_daily$state %>% group_by(state1) %>%
+  filter(state1 %in% states_in_buffers[[4]]) %>%
+  arrange(state1, date) %>%
+  mutate(case_rate = cases / (pop / 1000),
+         death_rate = deaths / (pop / 1000)) %>%
+  select(state1, state2, x, y, date, cases, deaths, pop,
+         case_rate, death_rate)
+
+ylimit <- max(state_cases_region$cases)
 pal2 <- c("purple", "blue4", "blue1", "lightblue", "orange", "red1", "red4")
-p3 <- state_cases %>%
+# log10y <- function(x) paste0(round_any(10^x / 1000, 0.01) , "K")
+p3 <- state_cases_region %>% as_tibble() %>% 
   filter(state1 %in% states_in_buffers[[2]]) %>%
   filter(date > lubridate::ymd("2020-03-01")) %>%
-  ggplot() + geom_line(aes(date, cases, color = state1)) +
-  ylim(0, ylimit) +
-  xlab("") + ylab("Cases") +
+  mutate(state2 = toupper(state2)) %>% 
+  ggplot() + geom_line(aes(date, cases, color = state2)) +
+  xlab("") + ylab("N cases") +
   ggtitle("Cases per state") +
   scale_color_manual(name = "", values = pal2) +
+  scale_y_continuous(trans = "log10", labels = as.integer, 
+                     breaks = 10^(0:6), limits = c(1, 10^6), expand = c(0,0)) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
   # scale_y_continuous(trans = "log10") +
   theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-ylimit <- max(case_rates$deaths)
-p4 <- state_cases %>%
+p3a <- state_cases_region %>% as_tibble() %>% 
   filter(state1 %in% states_in_buffers[[2]]) %>%
   filter(date > lubridate::ymd("2020-03-01")) %>%
-  ggplot() + geom_line(aes(date, deaths, color = state1)) +
-  ylim(0, ylimit) +
-  xlab("") + ylab("Deaths") +
-  ggtitle("Deaths per state") +
+  mutate(state2 = toupper(state2)) %>% 
+  ggplot() + geom_line(aes(date, cases, color = state2)) +
+  xlab("") + ylab("N cases") +
+  ggtitle("Cases per state") +
+  ylim(0, ylimit) + 
   scale_color_manual(name = "", values = pal2) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
   # scale_y_continuous(trans = "log10") +
+  theme_minimal()
+
+# Deaths
+ylimit2 <- max(state_cases_region$deaths)
+p4 <- state_cases_region %>% as_tibble() %>% 
+  filter(state1 %in% states_in_buffers[[2]]) %>%
+  filter(date > lubridate::ymd("2020-03-01")) %>%
+  mutate(state2 = toupper(state2)) %>% 
+  ggplot() + geom_line(aes(date, deaths, color = state2)) +
+  xlab("") + ylab("N deaths") +
+  ggtitle("Deaths per state") +
+  scale_color_manual(name = "", values = pal2) +
+  scale_y_continuous(trans = "log10", labels = as.integer, 
+                     breaks = 10^(0:6), limits = c(1, 10^6), expand = c(0,0)) +
+  scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+  # scale_y_continuous(trans = "log10") +
   theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
+p4a <- state_cases_region %>% as_tibble() %>% 
+  filter(state1 %in% states_in_buffers[[2]]) %>%
+  filter(date > lubridate::ymd("2020-03-01")) %>%
+  mutate(state2 = toupper(state2)) %>% 
+  ggplot() + geom_line(aes(date, deaths, color = state2)) +
+  xlab("") + ylab("N deaths") +
+  ggtitle("Deaths per state") +
+  ylim(0, ylimit2) + 
+  scale_color_manual(name = "", values = pal2) +
+  scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
+  # scale_y_continuous(trans = "log10") +
+  theme_minimal()
 
-op <- (p1 + p2) / (p3 + p4)
-f <- here::here("vignettes/figures/case_maps.png")
-ggsave(op, filename = f, height = 7, width = 10, dpi = 300)
+op <- (p1 + p2) / (p3 + p4) / (p3a + p4a)
+f <- here::here("vignettes/figures/case_maps2.png")
+ggsave(op, filename = f, height = 12, width = 10, dpi = 300)
 ```
 
 ```{r, echo=FALSE, out.width='100%'}
