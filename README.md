@@ -12,10 +12,17 @@ around a focal point, in this case Worcester, MA, the home of Clark
 University. It also tries to show county-level detail available in state
 datasets.
 
-**Last update**: 2020-03-28 10:05:16
+**Last update**: 2020-04-06 11:38:33
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
+
+**Updates 6 April 2020**:
+
+  - Function added to process US cases and merge with US census data
+  - Maps now presented for cases and deaths, as N per 1000 people and
+    total numbers
+  - State-wise cases and deaths presented on log 10 scale
 
 **Updates 26 March 2020**:
 
