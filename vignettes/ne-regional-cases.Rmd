@@ -223,7 +223,7 @@ p4a <- state_cases_region %>% as_tibble() %>%
   theme_minimal()
 
 op <- (p1 + p2) / (p3 + p4) / (p3a + p4a)
-f <- here::here("vignettes/figures/case_maps2.png")
+f <- here::here("vignettes/figures/case_maps.png")
 ggsave(op, filename = f, height = 12, width = 10, dpi = 300)
 ```
 

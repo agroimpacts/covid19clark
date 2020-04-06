@@ -7,7 +7,7 @@ A very limited `R` package for mapping daily changes in the number of COVID-19 c
 
 **Last update**: `r lubridate::now()`
 ```{r, echo=FALSE, out.width='100%'}
-knitr::include_graphics("vignettes/figures/case_maps2.png")
+knitr::include_graphics("vignettes/figures/case_maps.png")
 ```
 
 ## Notes
