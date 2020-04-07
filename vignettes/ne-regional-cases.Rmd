@@ -93,12 +93,12 @@ daily_cases_region <- us_cases_daily$county %>% filter(!is.na(state1)) %>%
 # pal <- RColorBrewer::brewer.pal(9, "Reds")
 case_legend <- function(x) {
   x + 
-  annotate("rect", xmin = -69, xmax = 69.8, ymin = 41.7, ymax = 42.5, 
+  annotate("rect", xmin = -69.3, xmax = -67, ymin = 41.7, ymax = 42.5, 
            fill = "grey") +
-  annotate("text", x = -68.6, y = 42.3, label = "Deaths", hjust = 0) + 
-  annotate("point", x = -68.8, y = 42.3, color = "red", shape = 16, size = 3) +
-  annotate("text", x = -68.6, y = 41.9, label = "Cases", hjust = 0) + 
-  annotate("point", x = -68.8, y = 41.9, color = "yellow", shape = 1, 
+  annotate("text", x = -68.9, y = 42.3, label = "Deaths", hjust = 0) + 
+  annotate("point", x = -69.1, y = 42.3, color = "red", shape = 16, size = 3) +
+  annotate("text", x = -68.9, y = 41.9, label = "Cases", hjust = 0) + 
+  annotate("point", x = -69.1, y = 41.9, color = "yellow", shape = 1, 
            size = 3)
 }
 
@@ -177,7 +177,6 @@ p3 <- state_cases_region %>% as_tibble() %>%
   scale_y_continuous(trans = "log10", labels = as.integer, 
                      breaks = 10^(0:6), limits = c(1, 10^6), expand = c(0,0)) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
-  # scale_y_continuous(trans = "log10") +
   theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 p3a <- state_cases_region %>% as_tibble() %>% 
@@ -190,8 +189,7 @@ p3a <- state_cases_region %>% as_tibble() %>%
   ylim(0, ylimit) + 
   scale_color_manual(name = "", values = pal2) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
-  # scale_y_continuous(trans = "log10") +
-  theme_minimal()
+  theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 # Deaths
 ylimit2 <- max(state_cases_region$deaths)
@@ -206,7 +204,6 @@ p4 <- state_cases_region %>% as_tibble() %>%
   scale_y_continuous(trans = "log10", labels = as.integer, 
                      breaks = 10^(0:6), limits = c(1, 10^6), expand = c(0,0)) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
-  # scale_y_continuous(trans = "log10") +
   theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 p4a <- state_cases_region %>% as_tibble() %>% 
@@ -219,8 +216,7 @@ p4a <- state_cases_region %>% as_tibble() %>%
   ylim(0, ylimit2) + 
   scale_color_manual(name = "", values = pal2) +
   scale_x_date(date_labels = "%b %d", date_breaks = "4 days") +
-  # scale_y_continuous(trans = "log10") +
-  theme_minimal()
+  theme_minimal() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 op <- (p1 + p2) / (p3 + p4) / (p3a + p4a)
 f <- here::here("vignettes/figures/case_maps.png")

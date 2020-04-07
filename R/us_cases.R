@@ -66,7 +66,7 @@ us_cases <- function(case_data) {
     dplyr::select(state1, state2, date, cases, deaths)
   state_cases <- state_cases %>%
     # as_tibble() %>% select(state, x, y) %>%
-    left_join(us_states, ., by = c("state" = "state1")) %>%
+    left_join(covid19clark::us_states, ., by = c("state" = "state1")) %>%
     rename(state1 = state) %>%
     dplyr::select(state1, state2, x, y, date, cases, deaths, pop) %>%
     arrange(state1, date)
