@@ -16,6 +16,7 @@ previous_cases <- readr::read_csv(
                           admin2 = readr::col_character(),
                           key = readr::col_character())
 )
+# previous_cases %>% filter(date == max(date))
 # previous_cases <- previous_cases %>% filter(date != max(date))
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 
@@ -48,6 +49,7 @@ if(tdiff > 0) {
     # load("data/us_cases_daily.rda")
 
     # run cleaning for US cases
+    # us_cases_daily <- covid19clark::us_cases(previous_cases)
     us_cases_daily <- covid19clark::us_cases(updated_cases)
     save(us_cases_daily, file = here::here("data/us_cases_daily.rda"))
   }
