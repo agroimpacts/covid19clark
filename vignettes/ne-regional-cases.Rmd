@@ -42,8 +42,10 @@ us_cases_daily$county %>% filter(state2 == "ma") %>%
   filter(date == max(date)) %>% summarize(sum(cases))
 us_cases_daily$county %>% filter(state2 == "ma") %>% 
   filter(date == max(date)) %>% view
-us_cases_daily$state %>% filter(state2 == "ma") %>% 
+us_cases_daily$state %>% as_tibble %>% filter(state2 == "ma") %>% 
   filter(date == max(date)) %>% summarize(sum(cases))
+us_cases_daily$state %>% as_tibble %>% filter(state2 == "ma") %>% 
+  filter(date == max(date)) %>% summarize(sum(deaths))
 
 # compare against DPH county numbers for 4/4--checks out for state
 ```

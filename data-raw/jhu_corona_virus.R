@@ -16,7 +16,7 @@ previous_cases <- readr::read_csv(
                           admin2 = readr::col_character(),
                           key = readr::col_character())
 )
-# previous_cases %>% filter(date == max(date))
+# previous_cases %>% dplyr::filter(date == max(date))
 # previous_cases <- previous_cases %>% filter(date != max(date))
 # file.copy(f, "inst/extdata/covid19_previous.csv")
 

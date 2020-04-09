@@ -78,7 +78,7 @@ us_cases <- function(case_data) {
     group_by(state1, county, date) %>%
     mutate(cases = cumsum(cases), deaths = sum(deaths)) %>%
     ungroup() %>% sf::st_as_sf(coords = c("x", "y"), crs = 4326) %>%
-    sf::st_join(us_counties, ., ) %>%
+    sf::st_join(covid19clark::us_counties, ., ) %>%
     # left_join(us_counties, ., by = c("state" = "state1")) %>%
     dplyr::select(state1, state2, county.x, county.y, x, y, date,
                   cases, deaths, pop) %>%
