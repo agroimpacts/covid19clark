@@ -17,8 +17,8 @@ previous_cases <- readr::read_csv(
                           key = readr::col_character())
 )
 # previous_cases %>% dplyr::filter(date == max(date))
-# previous_cases <- previous_cases %>% filter(date != max(date))
-# file.copy(f, "inst/extdata/covid19_previous.csv")
+# previous_cases <- previous_cases %>% dplyr::filter(date != max(date))
+# file.copy(f, "inst/extdata/covid19_previous.csv", overwrite = TRUE)
 
 # read new mass cases. This should fail silently if there aren't any
 # daily_cases <- covid19clark::get_jhu_daily(download_date = "03-28-2020",
@@ -43,6 +43,7 @@ if(tdiff > 0) {
   f <- here::here("inst/extdata/covid19_daily_reports.csv")
   if(!is.null(daily_cases_df)) {
     updated_cases <- dplyr::bind_rows(previous_cases, daily_cases_df)
+    # updated_cases <- previous_cases
     readr::write_csv(updated_cases, path = f)
 
     # data(us_cases_daily, package = "covid19clark")

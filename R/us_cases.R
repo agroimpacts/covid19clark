@@ -23,7 +23,7 @@ us_cases_clean <- function(case_data) {
     dplyr::select(admin2, county, prov, state, key, x, y, date, cases, deaths)
 
   # vector of state names for matching
-  state_names <- tibble(state1 = state.name, state2 = state.abb) %>%
+  state_names <- tibble::tibble(state1 = state.name, state2 = state.abb) %>%
     mutate(state1 = tolower(state1)) %>%
     bind_rows(., tibble(state1 = "district of columbia", state2 = "DC"))
 
@@ -50,6 +50,7 @@ us_cases_clean <- function(case_data) {
 #' @details Cleans downloaded US cases somewhat clumsily
 #' @importFrom magrittr `%>%`
 #' @importFrom dplyr select rename mutate filter bind_rows left_join arrange
+#' summarize
 #' @export
 us_cases <- function(case_data) {
 
