@@ -39,10 +39,11 @@ if(tdiff > 0) {
   })
   # daily_casesl[[1]] <- NULL
   daily_cases_df <- do.call(rbind, daily_casesl)
+  daily_cases_df <- daily_cases_df %>% mutate(fips = as.character(fips))
 
   f <- here::here("inst/extdata/covid19_daily_reports.csv")
   if(!is.null(daily_cases_df)) {
-    updated_cases <- dplyr::bind_rows(previous_cases, daily_cases_df)
+    updated_cases <- dplyr::bind_rows(previous_cases, daily_cases_df, )
     # updated_cases <- previous_cases
     readr::write_csv(updated_cases, path = f)
 
