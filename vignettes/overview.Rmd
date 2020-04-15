@@ -1,10 +1,19 @@
 ---
-title: "Vignette Title"
-author: "Vignette Author"
+title: "R Semester Project Proposal"
+subtitle: "GEOG346"
+author: "Zoe Maymon and Olivia Landry"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    fig_caption: yes
+    number_sections: yes
+    toc_depth: 4
+    toc: yes
+    css: unit.css
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{R Semester Project Proposal}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -16,3 +25,149 @@ knitr::opts_chunk$set(
 )
 ```
 
+# Summary
+
+The goal of this project is to create an interactive dashboard to display daily 
+COVID-19 data pulled from Johns Hopkins University and to compare the 
+differences between the representation abilities of two packages (plotly and 
+shiny). With this, we will be able to exhibit and analyze the COVID-19 data to 
+address the goals and objectives of this project. We will focus on all of the 
+COVID-19 cases within the United States and work with county level data. We hope
+to display graphs/charts and maps showing which areas of the country are 
+impacted the most from the COVID-19 crisis and the extent of these impacts.
+
+	Primary Objectives
+-Learn how to use Shiny and Plotly, read through tutorials
+
+-Implement packages with Johns Hopkins data and create designs for modules and 
+Github pages
+
+-Finish final draft of modules and github page
+
+-Create rmarkdown slides vignette using geospaar slides as a template- record 
+for 6-8 min meaning have 6-8 slides
+
+# Approach and Method
+
+
+## Data
+
+The dataset that we are using for our project is the Johns Hopkins University 
+COVID-19 repository. More specifically, daily data reports come from the  2019 
+Novel Coronavirus Visual Dashboard operated by the Johns Hopkins University 
+Center for Systems Science and Engineering (JHU CSSE). Case and death data will 
+be displayed using the packages Shiny and Plotly, which both have the 
+capabilities to create interactive maps and charts. Shiny will be used to create
+a dashboard for which both map(s) and chart(s)/graphs(s) will be displayed. In 
+coordination with Shiny, Leaflet will be used to develop the basemap and to 
+display geospatial data for the map portion of the data. The Shiny-based 
+dashboard will also give the user the ability to choose what information they 
+want to see (i.e. cases, deaths, hot spots, etc.). Hot spots will be developed 
+for Shiny using the Hotspot R package. Additional options like whether the user 
+wants to query out a specific state/county will be included. For plotly, we will
+be doing a similar visualization set-up as we will compare and contrast it with 
+Shiny on how it  COVID-19 case/death data. The benefit of using a package such 
+as Plotly is its ability to create professional looking graphs and charts, with 
+a high level of customization. Scatter plots can be used to show a temporal
+analysis of the US or a specific state or county. Similar to Shiny, there is a 
+level of interactivity which allows the user to select specific settings, move 
+sliders, pick from a list of choices, etc. that changes the display in 
+interesting ways.
+
+## Code
+
+-Create branches for COVID-19 dataset for both Shiny and Plotly portions of the 
+project.
+
+-Test out functionality of both Shiny (Zoe’s portion of project) and Plotly 
+(Olivia’s portion of the project) packages with COVID-19 data. 
+
+-Create separate R vignettes for the Shiny and Plotly packages.
+
+-Run the hotspot R package in order to generate a COVID-19 hotspot raster file. 
+(Zoe)
+
+-Shiny application development (through creation of UI and Server files) and 
+integration with Leaflet R package (for basemap and basic mapping purposes). 
+(Zoe)
+
+-Reference prior-processed JHU COVID-19 data  and hotspot raster when mapping 
+the layers in the interface. (Zoe)
+
+-Add additional widgets/options into the UI interface for further interactivity. 
+(Zoe)
+
+-Conclude on final formatting of dashboard interface. (Zoe)
+
+-Plotly application development referencing prior-processed JHU COVID-19 data 
+(Olivia)
+
+-Creation of interactive graphs and charts of the COVID-19, with developed 
+symbology and interactive capabilities. (Olivia)
+
+-Display Shiny and Plotly visualizations on Github Pages web space. 
+(Zoe and Olivia)
+
+-Finalize end-product vignette with Shiny and Plotly applications with detailed 
+attached report. (Zoe and Olivia)
+
+## Timelines
+
+### Broad Timeline
+Week 1 (04/20/20): Work with packages and have test output 
+
+Week 2 (04/27/20): Iron out final versions of graphics 
+
+Week 3 (05/04/20): Have presentation ready and finish write up (on or before 
+midnight on 4 May, 2020)
+
+### More Specific timeline 
+04/14/20: Zoe finishes beginning stages of experimenting with Shiny, Olivia 
+finishes beginning stages of experimenting with Plotly.
+
+04/15/20: Project Proposal Draft Submitted.
+
+04/19/20: Zoe finishes rough draft of outputs from Shiny, Olivia finishes rough 
+draft of outputs from Plotly.
+
+04/20/20: Zoe and Olivia meet to present drafted results and give each other 
+feedback.
+
+04/24/20: Zoe finishes reworked outputs from Shiny, Olivia finishes reworked 
+outputs from Plotly.
+
+04/25/20: Zoe and Olivia meet to show each other final outputs and give 
+feedback.
+
+04/29/20: Zoe adds the Shiny and Plotly outputs to a Github Pages interface.
+
+04/29/20: Have rough draft of presentation complete- Zoe will record work with 
+Shiny and Olivia will record work with Plotly.
+
+04/30/20: Zoe and Olivia meet to give feedback on presentation recordings.
+
+05/01/20: Presentation should be complete and Zoe and Olivia will break up the 
+final project submission.
+
+05/03/20: Draft of final project submission complete, Zoe and Olivia meet to 
+give feedback.
+
+05/04/20: Final of final project submission complete, Zoe and Olivia meet to 
+submit presentation and final project together.
+
+## Anticipated Outcome
+
+-Expect to meet the timeline we set for ourselves, with continuing communication 
+regarding goals and project milestones.
+
+-Provide rough draft examples of Shiny and Plotly R package implementation.
+
+-We will have quality interactive data visualization interfaces, using the Shiny
+and Plotly R packages, displaying continuously updated JHU COVID-19 data.
+ 
+-Create simple Github Pages project and embed data visualization applications on 
+the platform.
+
+-Develop R project vignette with data visualization applications and project 
+report, with sections regarding an introduction/our goals, methods, output 
+applications, and thoughts on R packages.
