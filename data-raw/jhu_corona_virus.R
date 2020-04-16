@@ -3,6 +3,7 @@
 # code adapted from: https://github.com/RamiKrispin/coronavirus
 `%>%` <- magrittr::`%>%`
 library(lubridate)
+library(covid19clark)
 
 # switched off for now because of change in dataset
 # f <- here::here("inst/extdata/covid19_ts.csv")
@@ -19,6 +20,7 @@ previous_cases <- readr::read_csv(
 # previous_cases %>% dplyr::filter(date == max(date))
 # previous_cases <- previous_cases %>% dplyr::filter(date != max(date))
 # file.copy(f, "inst/extdata/covid19_previous.csv", overwrite = TRUE)
+# readr::write_csv(previous_cases, path = f)
 
 # read new mass cases. This should fail silently if there aren't any
 # daily_cases <- covid19clark::get_jhu_daily(download_date = "03-28-2020",
@@ -38,7 +40,8 @@ if(tdiff > 0) {
     }
   })
   # daily_casesl[[1]] <- NULL
-  daily_cases_df <- do.call(rbind, daily_casesl)
+  daily_cases_df <- do.call(rbind, daily_casesl) %>%
+    dplyr::mutate(fips = as.character(fips))
 
   f <- here::here("inst/extdata/covid19_daily_reports.csv")
   if(!is.null(daily_cases_df)) {
