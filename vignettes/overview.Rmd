@@ -144,7 +144,8 @@ outputs from Plotly.
 04/25/20: Zoe and Olivia meet to show each other final outputs and give 
 feedback.
 
-04/29/20: Zoe adds the Shiny and Plotly outputs to a Github Pages interface.
+04/29/20: Zoe adds the Shiny and Plotly outputs to a Shiny.io and Github Pages 
+interfaces.
 
 04/29/20: Have rough draft of presentation complete- Zoe will record work with 
 Shiny and Olivia will record work with Plotly.
@@ -170,8 +171,8 @@ regarding goals and project milestones.
 -Provide quality interactive data visualization interfaces, using the Shiny
 and Plotly R packages, displaying continuously updated JHU COVID-19 data.
  
--Create simple Github Pages project and embed data visualization applications in 
-the platform.
+-Create a Github Page and a Shiny.io web page to embed data visualization 
+applications in the platforms.
 
 -Provide thoughtful recordings and presentations of both Shiny and Plotly 
 aspects of the project.
