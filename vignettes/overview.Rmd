@@ -41,7 +41,7 @@ Primary Objectives:
 -Learn how to use Shiny and Plotly, read through tutorials
 
 -Implement packages with Johns Hopkins data and create designs for modules and 
-Github pages
+Github page/Shiny.io web page.
 
 -Finish final draft of modules and github page
 
@@ -108,7 +108,8 @@ the layers in the interface. (Zoe)
 -Creation of interactive graphs and charts of the COVID-19 data, with developed 
 symbology and interactive capabilities. (Olivia)
 
--Display Shiny and Plotly visualizations on Github Pages web space. 
+-Display Shiny and Plotly visualizations on Shiny.io web page and 
+Github Pages web space respectively.
 (Zoe and Olivia)
 
 -Finalize end-product vignette with Shiny and Plotly applications with detailed 
