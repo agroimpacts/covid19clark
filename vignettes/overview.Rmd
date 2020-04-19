@@ -43,6 +43,9 @@ impacted the most from the COVID-19 crisis and the extent of these impacts.
 - Implement packages with Johns Hopkins data and create designs for modules and 
 Github page/Shiny.io web page
 
+- Implement packages with Johns Hopkins data and create designs for modules and 
+Github page/Shiny.io web page.
+
 - Finish final draft of modules and github page
 
 - Create rmarkdown slides vignette using geospaar slides as a template- record 
@@ -207,8 +210,7 @@ the layers in the interface. (Zoe)
 - Creation of interactive graphs and charts of the COVID-19 data, with developed 
 symbology and interactive capabilities. (Olivia)
 
-- Display Shiny visualizations on Shiny.io web page and Plotly visualizations on Github Pages web space. 
-(Zoe and Olivia)
+- Display Shiny visualizations on Shiny.io web page and Plotly visualizations on Github Pages web space.(Zoe and Olivia)
 
 - Finalize end-product vignette with Shiny and Plotly applications with detailed 
 attached report. (Zoe and Olivia)
@@ -243,7 +245,8 @@ outputs from Plotly.
 - 04/25/20: Zoe and Olivia meet to show each other final outputs and give 
 feedback.
 
-- 04/29/20: Zoe adds the Shiny and Plotly outputs to a Github Pages interface.
+- 04/29/20: Zoe adds the Shiny and Plotly outputs to a Shiny.io interface and 
+Github Pages interface.
 
 - 04/29/20: Have rough draft of presentation complete- Zoe will record work with 
 Shiny and Olivia will record work with Plotly.
@@ -269,8 +272,8 @@ regarding goals and project milestones.
 - Provide quality interactive data visualization interfaces, using the Shiny
 and Plotly R packages, displaying continuously updated JHU COVID-19 data.
  
-- Create simple Github Pages project and embed data visualization applications in 
-the platform.
+- Create a Github Page and a Shiny.io web page to embed data visualization 
+applications in the platforms.
 
 - Provide thoughtful recordings and presentations of both Shiny and Plotly 
 aspects of the project.
