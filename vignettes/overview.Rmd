@@ -105,10 +105,12 @@ library("sf")
 
 ```{r, warning = FALSE, message = FALSE}
 #Read in COVID-19 Daily Reports
-pre <- list.files("~/covid19clark", "covid19_daily_reports.csv", recursive=TRUE, 
-                  full.names=TRUE, 
-                  include.dirs=TRUE)
-df <- read.csv(pre)
+# pre <- list.files("~/covid19clark", "covid19_daily_reports.csv", recursive=TRUE, 
+#                   full.names=TRUE, 
+#                   include.dirs=TRUE)
+
+f <- file.choose()
+df <- read.csv(f)
 
 #Map of World Showing Cases, Deaths, and Recovered Data 
 world <- ne_countries(scale = "medium", returnclass = "sf")
