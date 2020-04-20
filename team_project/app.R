@@ -7,6 +7,7 @@ library(scales)
 library(lattice)
 library(dplyr)
 library(rgdal)
+library(rsconnect)
 data("us_cases_daily")
 
 ui <- bootstrapPage(
@@ -47,52 +48,53 @@ server <- function(input, output, session) {
   })
 
 
-    observe({
-      colorBy <- input$color
-      sizeBy <- input$size
+  observe({
+    colorBy <- input$color
+    sizeBy <- input$size
 
-      if (input$extent == "County") {
-        extentBy <- us_cases_daily$county
-        if (input$caseordeath == "Cases") {
-          values_COVID <- extentBy$cases
-          scalar <- 500
-          opacity <- .08
-        } else {
-          values_COVID <- extentBy$deaths
-          scalar <- 1000
-          opacity <- 1.6
-        }
+    if (input$extent == "County") {
+      extentBy <- us_cases_daily$county
+      if (input$caseordeath == "Cases") {
+        values_COVID <- extentBy$cases
+        scalar <- 500
+        opacity <- .5
       } else {
-        extentBy <- us_cases_daily$state
-        if (input$caseordeath == "Cases") {
-          values_COVID <- extentBy$cases
-          scalar <- 500
-          opacity <- .08
-        } else {
-          values_COVID <- extentBy$deaths
-          scalar <- 1000
-          opacity <- 1.6
-        }
+        values_COVID <- extentBy$deaths
+        scalar <- 2000
+        opacity <- .25
       }
+    } else {
+      extentBy <- us_cases_daily$state
+      if (input$caseordeath == "Cases") {
+        values_COVID <- extentBy$cases
+        scalar <- 500
+        opacity <- .5
+      } else {
+        values_COVID <- extentBy$deaths
+        scalar <- 500
+        opacity <- .25
+      }
+    }
 
 
-      colorData <- input$colors
-      pal <- colorFactor(input$colors, extentBy$cases)
+    colorData <- input$colors
+    pal <- colorFactor(input$colors, values_COVID)
 
-      #binpal <- colorBin("Blues", us_cases_daily$state)
-      leafletProxy("map", data = us_cases_daily) %>%
-        clearShapes() %>%
-        addCircles(~extentBy$x, ~extentBy$y,
-                   stroke=FALSE, fillOpacity=opacity,
-                   weight = 1, radius = ~sqrt(values_COVID)*scalar,
-                   popup = ~as.character(paste0(extentBy$county.x, sep = ", ", extentBy$state2)),
-                   label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
-                   color = ~pal(values_COVID)) %>%
-        addLegend("bottomleft", pal=pal, values=colorData, title=colorBy,
-                  layerId="colorLegend")
-    })
 
-   }
+    #binpal <- colorBin("Blues", us_cases_daily$state)
+    leafletProxy("map", data = us_cases_daily) %>%
+      clearShapes() %>%
+      addCircles(~extentBy$x, ~extentBy$y,
+                 stroke=FALSE, fillOpacity=opacity,
+                 weight = 1, radius = ~sqrt(values_COVID)*scalar,
+                 popup = ~as.character(paste0(extentBy$county.x, sep = ", ", extentBy$state2)),
+                 label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
+                 color = ~pal(values_COVID)) %>%
+      addLegend("bottomleft", pal=pal, values=colorData, title=colorBy,
+                layerId="colorLegend")
+  })
+
+}
 
 shinyApp(ui, server)
 
