@@ -105,9 +105,10 @@ library("sf")
 
 ```{r, warning = FALSE, message = FALSE}
 #Read in COVID-19 Daily Reports
-getwd()
-setwd("~/covid19clark")
-getwd()
+if (getwd() != "~/covid19clark") {
+  setwd("~/covid19clark")
+}
+
 df <- read.csv("~/covid19clark/inst/extdata/covid19_daily_reports.csv", 
                stringsAsFactors = FALSE)
 
