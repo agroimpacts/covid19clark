@@ -78,9 +78,10 @@ interactivity which allows the user to select specific settings (move
 sliders, pick from a list of choices, etc.) that change the display in 
 interesting ways.
 
-**Visualizations:** 
+ 
+### Visualizations
 
-*Set Up*
+
 ```{r, warning = FALSE, message = FALSE}
 library(ggplot2)
 library(tidyverse)
@@ -99,10 +100,16 @@ library("rnaturalearthdata")
 library("sf")
 ```
 
-*Maps*
+#### Maps
+
+
 ```{r, warning = FALSE, message = FALSE}
 #Read in COVID-19 Daily Reports
-df <- read.csv("D:/OLandry/Geospatial Analysis with R/Final Project/R Results/covid19clark/inst/extdata/covid19_daily_reports.csv", stringsAsFactors = FALSE)
+getwd()
+setwd("~/covid19clark")
+getwd()
+df <- read.csv("~/covid19clark/inst/extdata/covid19_daily_reports.csv", 
+               stringsAsFactors = FALSE)
 
 #Map of World Showing Cases, Deaths, and Recovered Data 
 world <- ne_countries(scale = "medium", returnclass = "sf")
@@ -116,13 +123,16 @@ ggplot(data = world) +
              aes(x = x, y = y, color = 'recovered')) +
   scale_colour_manual(NULL, values = c(cases = "red",
                                        deaths = "blue", 
-                                       recovered = "purple")) + labs(title="Map of World Showing Cases, Deaths, and Recovered") + theme(plot.title = element_text(hjust = 0.5))
+                                       recovered = "purple")) + 
+  labs(title="Map of World Showing Cases, Deaths, and Recovered") + 
+  theme(plot.title = element_text(hjust = 0.5))
 
 #Map of Just the US Showing Cases, Deaths, and Recovered Data 
 counties <- map_data("county")
 US <- df %>% filter(country == "US")
 ggplot(data = counties) + 
-  geom_polygon(aes(x = long, y = lat, group = group),fill = NA, color = "black") + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = NA, color = "black") + 
   geom_point(data = US %>% filter(cases > 0),
              aes(x = x, y = y, color = "cases")) + 
   geom_point(data = US %>% filter(deaths > 0), 
@@ -131,49 +141,51 @@ ggplot(data = counties) +
              aes(x = x, y = y, color = 'recovered')) +
   scale_colour_manual(NULL, values = c(cases = "red",
                                        deaths = "blue", 
-                                       recovered = "purple")) + labs(title="Map of US Showing Cases, Deaths, and Recovered") + theme(plot.title = element_text(hjust = 0.5))
+                                       recovered = "purple")) + 
+  labs(title="Map of US Showing Cases, Deaths, and Recovered") + 
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
-*Histograms*
-```{r, warning = FALSE, message = FALSE}
-#Histogram Showing US Cases, Deaths, and Recovered
-ggplot() + geom_histogram(data = US %>% filter(cases > 0),
-                          aes(x = x, color = "cases")) + 
-  geom_histogram(data = US %>% filter(deaths > 0), 
-                 aes(x = x, color = 'deaths')) + 
-  geom_histogram(data = US %>% filter(recovered > 0),
-                 aes(x = x, color = 'recovered')) + labs(title="Histogram Showing US Cases, Deaths, and Recovered") + theme(plot.title = element_text(hjust = 0.5))
+#### Histograms
 
-#Histogram Showing Worldwide Cases, Deaths, and Recovered
-ggplot() + geom_histogram(data = df %>% filter(cases > 0),
-                          aes(x = x, color = "cases")) + 
-  geom_histogram(data = df %>% filter(deaths > 0), 
-                 aes(x = x, color = 'deaths')) + 
-  geom_histogram(data = df %>% filter(recovered > 0),
-                 aes(x = x, color = 'recovered')) + labs(title="Histogram Showing Worldwide Cases, Deaths, and Recovered") + theme(plot.title = element_text(hjust = 0.5))
+
+```{r, warning = FALSE, message = FALSE}
 
 #Histogram Showing US Cases, Deaths, and Recovered Combined
 us_counties %>% ggplot() + 
-  geom_histogram(aes(x = x, color = state), bins = 15) + labs(title="Histogram Showing US Cases, Deaths, and Recovered Combined") + theme(text = element_text(size=10))
+  geom_histogram(aes(x = x, color = state), bins = 15) + 
+  labs(title="Histogram Showing US Cases, Deaths, and Recovered Combined", 
+       x = "Longitude") + theme(text = element_text(size=10))
 
 #Histogram Showing US Cases and Deaths
-  ggplot() + geom_histogram(data = us_cases_daily$county %>% filter(.$cases > 0),
+  ggplot() + geom_histogram(data = us_cases_daily$county %>% 
+                              filter(.$cases > 0),
              aes(x = x, color = "cases")) + 
   geom_histogram(data =us_cases_daily$county %>% filter(.$deaths > 0), 
-             aes(x = x, color = 'deaths')) + labs(title="Histogram Showing US Cases and Deaths") +
+             aes(x = x, color = 'deaths')) + 
+    labs(title="Histogram Showing US Cases and Deaths", 
+         x = "Longitude", y = "Cases/Deaths") +
   theme(plot.title = element_text(hjust = 0.5))
 
 ```
 
-*Barplots*
+#### Barplots
+
+
 ```{r, warning = FALSE, message = FALSE}
 #Barplot Showing Number of COVID-19 Cases by State
- state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% summarise(maxcases = max(cases))
- barplot(state_cases$maxcases, main = "Number of COVID-19 Cases by State", xlab = "US States and Territories", ylab = "Number of Cases", names.arg = c(1:52))
+ state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% 
+  summarise(maxcases = max(cases))
+ barplot(state_cases$maxcases, main = "Number of COVID-19 Cases by State", 
+         xlab = "US States and Territories", ylab = "Number of Cases", 
+         names.arg = c(1:52))
  
 #Barplot Showing Number of COVID-19 Deaths by State
-  state_deaths <- us_cases_daily$state %>% group_by(state1) %>% select(deaths) %>% summarise(maxdeaths = max(deaths))
-  barplot(state_deaths$maxdeaths, main = "Number of COVID-19 Deaths by State", xlab = "US States and Territories", ylab = "Number of Deaths", names.arg = c(1:52))
+  state_deaths <- us_cases_daily$state %>% group_by(state1) %>% 
+    select(deaths) %>% summarise(maxdeaths = max(deaths)) 
+  barplot(state_deaths$maxdeaths, main = "Number of COVID-19 Deaths by State", 
+          xlab = "US States and Territories", ylab = "Number of Deaths", 
+          names.arg = c(1:52))
 ```
 
 
@@ -210,7 +222,8 @@ the layers in the interface (Zoe)
 - Creation of interactive graphs and charts of the COVID-19 data, with developed 
 symbology and interactive capabilities (Olivia)
 
-- Display Shiny visualizations on Shiny.io web page and Plotly visualizations on Github Pages web space (Zoe and Olivia)
+- Display Shiny visualizations on Shiny.io web page and Plotly visualizations on
+Github Pages web space (Zoe and Olivia)
 
 - Finalize end-product vignette with Shiny and Plotly applications with detailed 
 attached report (Zoe and Olivia)
@@ -233,8 +246,8 @@ finishes beginning stages of experimenting with Plotly
 
 - 04/15/20: Project Proposal Draft Submitted
 
-- 04/19/20: Zoe finishes rough draft of outputs from Shiny, Olivia finishes rough 
-draft of outputs from Plotly
+- 04/19/20: Zoe finishes rough draft of outputs from Shiny, Olivia finishes 
+rough draft of outputs from Plotly
 
 - 04/20/20: Zoe and Olivia meet to present drafted results and give each other 
 feedback
@@ -264,8 +277,8 @@ submit presentation and final project together
 
 ## Anticipated Outcome
 
-- Expect to meet the timeline we set for ourselves, with continuing communication 
-regarding goals and project milestones
+- Expect to meet the timeline we set for ourselves, with continuing 
+communication regarding goals and project milestones
 
 - Provide rough draft examples of Shiny and Plotly R package implementation
 
