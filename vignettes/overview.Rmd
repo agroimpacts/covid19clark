@@ -108,7 +108,7 @@ library("sf")
 pre <- list.files("~/covid19clark", "covid19_daily_reports.csv", recursive=TRUE, 
                   full.names=TRUE, 
                   include.dirs=TRUE)
-df <- read.csv(pre, stringsAsFactors = FALSE)
+df <- read.csv(pre)
 
 #Map of World Showing Cases, Deaths, and Recovered Data 
 world <- ne_countries(scale = "medium", returnclass = "sf")
