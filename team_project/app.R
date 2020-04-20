@@ -55,15 +55,23 @@ server <- function(input, output, session) {
         extentBy <- us_cases_daily$county
         if (input$caseordeath == "Cases") {
           values_COVID <- extentBy$cases
+          scalar <- 500
+          opacity <- .08
         } else {
           values_COVID <- extentBy$deaths
+          scalar <- 1000
+          opacity <- 1.6
         }
       } else {
         extentBy <- us_cases_daily$state
         if (input$caseordeath == "Cases") {
           values_COVID <- extentBy$cases
+          scalar <- 500
+          opacity <- .08
         } else {
           values_COVID <- extentBy$deaths
+          scalar <- 1000
+          opacity <- 1.6
         }
       }
 
@@ -75,8 +83,8 @@ server <- function(input, output, session) {
       leafletProxy("map", data = us_cases_daily) %>%
         clearShapes() %>%
         addCircles(~extentBy$x, ~extentBy$y,
-                   stroke=FALSE, fillOpacity=0.5,
-                   weight = 1, radius = ~sqrt(values_COVID)*500,
+                   stroke=FALSE, fillOpacity=opacity,
+                   weight = 1, radius = ~sqrt(values_COVID)*scalar,
                    popup = ~as.character(paste0(extentBy$county.x, sep = ", ", extentBy$state2)),
                    label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
                    color = ~pal(values_COVID)) %>%
