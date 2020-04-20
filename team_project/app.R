@@ -11,12 +11,10 @@ library(rsconnect)
 data("us_cases_daily")
 
 ui <- bootstrapPage(
+  titlePanel("COVID19 Data"),
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   leafletOutput("map", width = "100%", height = "100%"),
-  absolutePanel(top = 10, right = 10,
-                # sliderInput("range", "Magnitudes", min(quakes$mag), max(quakes$mag),
-                #             value = range(quakes$mag), step = 0.1
-                # ),
+  absolutePanel(top = 70, right = 10,
                 selectInput("extent", "Geographic Extent", list("County", "State"))
                 ,
                 selectInput("colors", "Color Scheme",
@@ -90,8 +88,8 @@ server <- function(input, output, session) {
                  popup = ~as.character(paste0(extentBy$county.x, sep = ", ", extentBy$state2)),
                  label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
                  color = ~pal(values_COVID)) %>%
-      addLegend("bottomleft", pal=pal, values=colorData, title=colorBy,
-                layerId="colorLegend")
+      addLegend("topleft", pal=pal, values= ~values_COVID, title=colorBy,
+                layerId="colorLegend", bins = 2, labFormat = labelFormat())
   })
 
 }
