@@ -104,42 +104,15 @@ library("sf")
 
 
 ```{r, warning = FALSE, message = FALSE}
-#Read in COVID-19 Daily Reports
-# pre <- list.files("~/covid19clark", "covid19_daily_reports.csv", recursive=TRUE, 
-#                   full.names=TRUE, 
-#                   include.dirs=TRUE)
-
-f <- file.choose()
-df <- read.csv(f)
-
-#Map of World Showing Cases, Deaths, and Recovered Data 
-world <- ne_countries(scale = "medium", returnclass = "sf")
-ggplot(data = world) +
-  geom_sf() +
-  geom_point(data = df %>% filter(cases > 0),
-             aes(x = x, y = y, color = "cases")) + 
-  geom_point(data = df %>% filter(deaths > 0), 
-             aes(x = x, y = y, color = 'deaths')) + 
-  geom_point(data = df %>% filter(recovered > 0),
-             aes(x = x, y = y, color = 'recovered')) +
-  scale_colour_manual(NULL, values = c(cases = "red",
-                                       deaths = "blue", 
-                                       recovered = "purple")) + 
-  labs(title="Map of World Showing Cases, Deaths, and Recovered") + 
-  theme(plot.title = element_text(hjust = 0.5))
 
 #Map of Just the US Showing Cases, Deaths, and Recovered Data 
 counties <- map_data("county")
-US <- df %>% filter(country == "US")
-ggplot(data = counties) + 
-  geom_polygon(aes(x = long, y = lat, group = group),
-               fill = NA, color = "black") + 
-  geom_point(data = US %>% filter(cases > 0),
+# US <- df %>% filter(country == "US")
+ggplot(data = us_cases_daily$county) + 
+  geom_point(data = us_cases_daily$county %>% filter(cases > 0),
              aes(x = x, y = y, color = "cases")) + 
-  geom_point(data = US %>% filter(deaths > 0), 
+  geom_point(data = us_cases_daily$county %>% filter(deaths > 0), 
              aes(x = x, y = y, color = 'deaths')) + 
-  geom_point(data = US %>% filter(recovered > 0),
-             aes(x = x, y = y, color = 'recovered')) +
   scale_colour_manual(NULL, values = c(cases = "red",
                                        deaths = "blue", 
                                        recovered = "purple")) + 
@@ -149,12 +122,11 @@ ggplot(data = counties) +
 
 #### Histograms
 
-
 ```{r, warning = FALSE, message = FALSE}
 
 #Histogram Showing US Cases, Deaths, and Recovered Combined
 us_counties %>% ggplot() + 
-  geom_histogram(aes(x = x, color = state), bins = 15) + 
+  geom_histogram(aes(x = x, color = state, fill = state), bins = 15) + 
   labs(title="Histogram Showing US Cases, Deaths, and Recovered Combined", 
        x = "Longitude") + theme(text = element_text(size=10))
 
