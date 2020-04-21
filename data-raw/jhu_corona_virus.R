@@ -3,6 +3,7 @@
 # code adapted from: https://github.com/RamiKrispin/coronavirus
 `%>%` <- magrittr::`%>%`
 library(lubridate)
+library(covid19clark)
 
 # switched off for now because of change in dataset
 # f <- here::here("inst/extdata/covid19_ts.csv")
@@ -40,7 +41,7 @@ if(tdiff > 0) {
   })
   # daily_casesl[[1]] <- NULL
   daily_cases_df <- do.call(rbind, daily_casesl)
-  daily_cases_df <- daily_cases_df %>% mutate(fips = as.character(fips))
+  daily_cases_df <- daily_cases_df %>% dplyr::mutate(fips = as.character(fips))
 
   f <- here::here("inst/extdata/covid19_daily_reports.csv")
   if(!is.null(daily_cases_df)) {

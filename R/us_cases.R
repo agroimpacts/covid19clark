@@ -50,12 +50,12 @@ us_cases_clean <- function(case_data) {
 #' @details Cleans downloaded US cases somewhat clumsily
 #' @importFrom magrittr `%>%`
 #' @importFrom dplyr select rename mutate filter bind_rows left_join arrange
-#' summarize
+#' summarize ungroup
 #' @export
 us_cases <- function(case_data) {
 
   # run cleaner
-  # clean_cases <- covid19clark:::us_cases_clean(updated_cases)
+  # clean_cases <- covid19clark:::us_cases_clean(case_data)
   clean_cases <- us_cases_clean(case_data)
 
   # state cases
