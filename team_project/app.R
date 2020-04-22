@@ -13,6 +13,11 @@ library(rsconnect)
 data("us_cases_daily")
 
 ui <- bootstrapPage(
+  tabsetPanel(
+    tabPanel("Inputs", uiOutput("inputs")),
+    tabPanel("Test result", uiOutput("res")),
+    tabPanel("Warnings", verbatimTextOutput("warnings"))
+  ),
   titlePanel("COVID19 Daily Cases/Deaths Data"),
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   leafletOutput("map", width = "100%", height = "100%"),
@@ -37,6 +42,33 @@ ui <- bootstrapPage(
 server <- function(input, output, session) {
 
   ## Interactive Map ###########################################
+
+  warn_messages <- reactiveVal(NULL)
+
+  # turn any warnings produced by calling a function
+  # into a notification and optionally call the function
+  # again to return the results (use `return = FALSE` if
+  # function produces side effects)
+  catchWarning <- function(f, ..., return = TRUE) {
+    tryCatch(f(...), warning = function(w) {
+      isolate({
+        msgs <- c(warn_messages(), w$message)
+        warn_messages(msgs)
+      })
+      if (return) f(...)
+    })
+  }
+  output$inputs <- renderUI({
+    tagList(
+
+      catchWarning(dateRangeInput, "x4", "Mis-specified `start`", start = "null"),
+    )
+  })
+  outputOptions(output, "inputs", suspendWhenHidden = FALSE)
+
+  observe ({
+    catchWarning(updateDateRangeInput, session, "x4", end = "x", return = FALSE)
+  })
 
   # Create the map
   output$map <- renderLeaflet({
@@ -110,6 +142,7 @@ server <- function(input, output, session) {
       addLegend("topleft", pal=pal, values= ~values_COVID, title=colorBy,
                 layerId="colorLegend", bins = 50, labFormat = labelFormat())
   })
+
 
 }
 
