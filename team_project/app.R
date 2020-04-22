@@ -89,7 +89,7 @@ server <- function(input, output, session) {
                  label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
                  color = ~pal(values_COVID)) %>%
       addLegend("topleft", pal=pal, values= ~values_COVID, title=colorBy,
-                layerId="colorLegend", bins = 2, labFormat = labelFormat())
+                layerId="colorLegend", bins = 50, labFormat = labelFormat())
   })
 
 }
