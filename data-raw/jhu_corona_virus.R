@@ -19,6 +19,7 @@ previous_cases <- readr::read_csv(
 )
 # previous_cases %>% dplyr::filter(date == max(date))
 # previous_cases <- previous_cases %>% dplyr::filter(date != max(date))
+# previous_cases <- previous_cases %>% dplyr::filter(date < Sys.Date() - 4)
 # file.copy(f, "inst/extdata/covid19_previous.csv", overwrite = TRUE)
 # readr::write_csv(previous_cases, path = f)
 
@@ -29,11 +30,15 @@ last_date <- max(unique(previous_cases$date))
 tdiff <- Sys.Date() - last_date
 if(tdiff > 0) {
   tseries <- seq.Date(last_date, Sys.Date(), by = "d")[-1]
-  daily_casesl <- lapply(tseries, function(x) {  # x <- tseries[2]
+  daily_casesl <- lapply(tseries, function(x) {  # x <- tseries[5]
     qdate <- strftime(x, "%m-%d-%Y")
     try(daily_cases <- covid19clark::get_jhu_daily(qdate, write = FALSE),
         silent = TRUE)
     if(exists("daily_cases")) {
+      if(max(daily_cases$date) > "2020-04-22") {
+        fixdate <- x
+        daily_cases <- daily_cases %>% dplyr::mutate(date = fixdate)
+      }
       return(daily_cases)
     } else {
       return(NULL)
@@ -45,7 +50,7 @@ if(tdiff > 0) {
 
   f <- here::here("inst/extdata/covid19_daily_reports.csv")
   if(!is.null(daily_cases_df)) {
-    updated_cases <- dplyr::bind_rows(previous_cases, daily_cases_df, )
+    updated_cases <- dplyr::bind_rows(previous_cases, daily_cases_df)
     # updated_cases <- previous_cases
     readr::write_csv(updated_cases, path = f)
 

@@ -46,7 +46,8 @@ us_cases_daily$state %>% as_tibble %>% filter(state2 == "ma") %>%
   filter(date == max(date)) %>% summarize(sum(cases))
 us_cases_daily$state %>% as_tibble %>% filter(state2 == "ma") %>% 
   filter(date == max(date)) %>% summarize(sum(deaths))
-
+us_cases_daily$state %>% as_tibble %>% filter(state2 == "ny") %>% View
+  
 # compare against DPH county numbers for 4/4--checks out for state
 ```
 
