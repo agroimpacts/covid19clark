@@ -12,26 +12,42 @@ library(rgdal)
 library(rsconnect)
 data("us_cases_daily")
 
+us_cases_county <- us_cases_daily$county %>%
+  filter((cases > 0) & (!is.na(cases)))
+
+us_cases_state <- us_cases_daily$state %>%
+  filter((cases > 0) & (!is.na(cases)))
+
+us_deaths_county <- us_cases_daily$county %>%
+  filter((deaths > 0) & (!is.na(deaths)))
+
+us_deaths_state <- us_cases_daily$state %>%
+  filter((deaths > 0) & (!is.na(deaths)))
+
 ui <- bootstrapPage(
+  span(textOutput("message"), style="color:red"),
   tabsetPanel(
-    tabPanel("Inputs", uiOutput("inputs")),
-    tabPanel("Test result", uiOutput("res")),
-    tabPanel("Warnings", verbatimTextOutput("warnings"))
+    tabPanel("Map",
+             uiOutput("inputs"),
+             tableOutput("table"),),
+    tabPanel("Graphs", uiOutput("res")),
+    tabPanel("Table", verbatimTextOutput("warnings"))
   ),
   titlePanel("COVID19 Daily Cases/Deaths Data"),
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   leafletOutput("map", width = "100%", height = "100%"),
-  absolutePanel(top = 100, right = 10,
+  absolutePanel(top = 110, right = 10,
 
                 selectInput("extent", "Geographic Extent", list("County", "State"))
                 ,
                 selectInput("colors", "Color Scheme",
-                            rownames(subset(brewer.pal.info, category %in% c("seq", "div")))
+                            rownames(subset(brewer.pal.info, category %in%
+                                              c("seq", "div")))
                 ),
                 selectInput("caseordeath", "Cases/Deaths", list("Cases", "Deaths"))
                 ,
                 dateInput(inputId = "dateinput", label = "Input Date",
-                          value = max(us_cases_county_max$date),
+                          value = max(us_cases_county$date),
                           min = min(us_cases_county$date),
                           max = max(us_cases_county$date)),
                 checkboxInput("legend", "Show legend", TRUE)
@@ -39,7 +55,6 @@ ui <- bootstrapPage(
 
   )
 )
-
 
 
 
@@ -51,7 +66,7 @@ server <- function(input, output, session) {
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles(
-        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
+        urlTemplate = "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
         attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
       ) %>%
       setView(lng = -93.85, lat = 37.45, zoom = 4.5)
@@ -62,20 +77,12 @@ server <- function(input, output, session) {
     colorBy <- input$color
     sizeBy <- input$size
 
-    us_cases_county <- us_cases_daily$county %>%
-      filter((cases > 0) & (!is.na(cases)))
     us_cases_county_max <- us_cases_county %>% filter(date == input$dateinput)
 
-    us_cases_state <- us_cases_daily$state %>%
-      filter((cases > 0) & (!is.na(cases)))
     us_cases_state_max <- us_cases_state %>% filter(date == input$dateinput)
 
-    us_deaths_county <- us_cases_daily$county %>%
-      filter((deaths > 0) & (!is.na(deaths)))
     us_deaths_county_max <- us_deaths_county %>% filter(date == input$dateinput)
 
-    us_deaths_state <- us_cases_daily$state %>%
-      filter((deaths > 0) & (!is.na(deaths)))
     us_deaths_state_max <- us_deaths_state %>% filter(date == input$dateinput)
 
     if (input$extent == "County") {
@@ -85,13 +92,13 @@ server <- function(input, output, session) {
         extentBy <-  us_cases_county_max
         values_COVID <- us_cases_county_max$cases
         scalar <- 500
-        opacity <- .5
+        opacity <- 1
       } else {
         us_value_vector <- us_deaths_county_max
         extentBy <-  us_deaths_county_max
         values_COVID <- us_deaths_county_max$deaths
         scalar <- 1500
-        opacity <- .5
+        opacity <- 1
       }
     }else if (input$extent == "State") {
       if (input$caseordeath == "cases") {
@@ -99,16 +106,15 @@ server <- function(input, output, session) {
         extentBy <-  us_cases_state_max
         values_COVID <- us_cases_state_max$cases
         scalar <- 500
-        opacity <- .5
+        opacity <- 1
       } else {
         us_value_vector <- us_deaths_state_max
         extentBy <-  us_deaths_state_max
         values_COVID <- us_deaths_state_max$deaths
         scalar <- 1500
-        opacity <- .5
+        opacity <- 1
       }
     }
-
 
 
     colorData <- input$colors
@@ -127,7 +133,6 @@ server <- function(input, output, session) {
       addLegend("topleft", pal=pal, values= ~values_COVID, title=colorBy,
                 layerId="colorLegend", bins = 50, labFormat = labelFormat())
   })
-
 
 }
 
