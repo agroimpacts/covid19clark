@@ -92,13 +92,13 @@ server <- function(input, output, session) {
         extentBy <-  us_cases_county_max
         values_COVID <- us_cases_county_max$cases
         scalar <- 500
-        opacity <- 1
+        opacity <- .5
       } else {
         us_value_vector <- us_deaths_county_max
         extentBy <-  us_deaths_county_max
         values_COVID <- us_deaths_county_max$deaths
-        scalar <- 1500
-        opacity <- 1
+        scalar <- 500
+        opacity <- .5
       }
     }else if (input$extent == "State") {
       if (input$caseordeath == "cases") {
@@ -106,19 +106,19 @@ server <- function(input, output, session) {
         extentBy <-  us_cases_state_max
         values_COVID <- us_cases_state_max$cases
         scalar <- 500
-        opacity <- 1
+        opacity <- .5
       } else {
         us_value_vector <- us_deaths_state_max
         extentBy <-  us_deaths_state_max
         values_COVID <- us_deaths_state_max$deaths
-        scalar <- 1500
-        opacity <- 1
+        scalar <- 500
+        opacity <- .5
       }
     }
 
 
     colorData <- input$colors
-    pal <- colorBin(pal = input$colors, domain = values_COVID, bins = 8)
+    pal <- colorQuantile(pal = input$colors, domain = values_COVID, n = 8)
 
 
     #binpal <- colorBin("Blues", us_cases_daily$state)
