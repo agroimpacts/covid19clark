@@ -51,7 +51,7 @@ ui <- bootstrapPage(
                           min = min(us_cases_county$date),
                           max = max(us_cases_county$date))
                ,
-                selectInput("state", "Choose State (Graphs)", us_cases_state_specic)
+                selectInput("state", "States for Charts", us_cases_state_specic)
                ,
                 checkboxInput("legend", "Show legend", TRUE)
 
@@ -239,7 +239,7 @@ server <- function(input, output, session) {
      }
    }
    state_select <- us_cases_daily$state %>% filter(state1 == input$state)
-   plot(state_select$date, state_select$cases)
+   ggplot() + geom_line(aes(state_select$date, log10(state_select$cases))) + geom_line(aes(state_select$date,log10(state_select$deaths)))
  })
 
  output$info <- renderText({
