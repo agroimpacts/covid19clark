@@ -26,22 +26,12 @@ us_deaths_state <- us_cases_daily$state %>%
 
 ui <- bootstrapPage(
   span(textOutput("message"), style="color:red"),
-  tabsetPanel(
-    tabPanel("Map",
-             uiOutput("inputs"),
-             tableOutput("table"),),
-    tabPanel("Graphs", uiOutput("res")),
-    tabPanel("Table", verbatimTextOutput("warnings"))
-  ),
-  titlePanel("COVID19 Daily Cases/Deaths Data"),
-  tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
-  leafletOutput("map", width = "100%", height = "100%"),
-  absolutePanel(top = 110, right = 10,
 
-                selectInput("extent", "Geographic Extent", list("County", "State"))
-                ,
-                selectInput("colors", "Color Scheme",
-                            rownames(subset(brewer.pal.info, category %in%
+  tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
+  titlePanel("COVID19 Daily Cases/Deaths Data"),
+  sidebarLayout(
+  sidebarPanel(selectInput("extent", "Geographic Extent", list("County", "State")),
+               selectInput("colors", "Color Scheme", rownames(subset(brewer.pal.info, category %in%
                                               c("seq", "div")))
                 ),
                 selectInput("caseordeath", "Cases/Deaths", list("Cases", "Deaths"))
@@ -53,17 +43,29 @@ ui <- bootstrapPage(
                 checkboxInput("legend", "Show legend", TRUE)
 
 
+  ),
+  mainPanel(
+    tabsetPanel(
+      tabPanel("Map",
+               leafletOutput('maps', width = "105%", height = 800)
+      ),
+      tabPanel("Graphs", plotOutput("plot1", click = "plot_click"),
+               verbatimTextOutput("info")),
+      tabPanel("Table", DT::dataTableOutput("table"))
+    )),
   )
+
 )
 
 
 
 server <- function(input, output, session) {
 
+
   ## Interactive Map ###########################################
 
   # Create the map
-  output$map <- renderLeaflet({
+  output$maps <- renderLeaflet({
     leaflet() %>%
       addTiles(
         urlTemplate = "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
@@ -73,7 +75,7 @@ server <- function(input, output, session) {
   })
 
 
-  observe({
+ observe({
     colorBy <- input$color
     sizeBy <- input$size
 
@@ -91,13 +93,13 @@ server <- function(input, output, session) {
         us_value_vector <- us_cases_county_max
         extentBy <-  us_cases_county_max
         values_COVID <- us_cases_county_max$cases
-        scalar <- 5000
+        scalar <- 6000
         opacity <- 1
       } else {
         us_value_vector <- us_deaths_county_max
         extentBy <-  us_deaths_county_max
         values_COVID <- us_deaths_county_max$deaths
-        scalar <- 5000
+        scalar <- 6000
         opacity <- 1
       }
     }else if (input$extent == "State") {
@@ -105,13 +107,13 @@ server <- function(input, output, session) {
         us_value_vector <- us_cases_state_max
         extentBy <-  us_cases_state_max
         values_COVID <- us_cases_state_max$cases
-        scalar <- 5000
+        scalar <- 6000
         opacity <- 1
       } else {
         us_value_vector <- us_deaths_state_max
         extentBy <-  us_deaths_state_max
         values_COVID <- us_deaths_state_max$deaths
-        scalar <- 5000
+        scalar <- 6000
         opacity <- 1
       }
     }
@@ -122,7 +124,7 @@ server <- function(input, output, session) {
 
 
     #binpal <- colorBin("Blues", us_cases_daily$state)
-    leafletProxy("map", data = us_value_vector) %>%
+    leafletProxy("maps", data = us_value_vector) %>%
       clearShapes() %>%
       addCircles(~extentBy$x, ~extentBy$y,
                  stroke=FALSE, fillOpacity=opacity,
@@ -132,8 +134,53 @@ server <- function(input, output, session) {
                  color = ~pal(values_COVID)) %>%
       addLegend("topleft", pal=pal, values= ~values_COVID, title=colorBy,
                 layerId="colorLegend", bins = 50, labFormat = labelFormat())
-  })
 
+  })
+ output$table <- DT::renderDataTable({
+   colorBy <- input$color
+   sizeBy <- input$size
+
+   us_cases_county_max <- us_cases_county %>% filter(date == input$dateinput)
+
+   us_cases_state_max <- us_cases_state %>% filter(date == input$dateinput)
+
+   us_deaths_county_max <- us_deaths_county %>% filter(date == input$dateinput)
+
+   us_deaths_state_max <- us_deaths_state %>% filter(date == input$dateinput)
+
+   if (input$extent == "County") {
+
+     if (input$caseordeath == "Cases") {
+       us_value_vector <- us_cases_county_max
+       extentBy <-  us_cases_county_max
+       values_COVID <- us_cases_county_max$cases
+       scalar <- 5000
+       opacity <- 1
+     } else {
+       us_value_vector <- us_deaths_county_max
+       extentBy <-  us_deaths_county_max
+       values_COVID <- us_deaths_county_max$deaths
+       scalar <- 5000
+       opacity <- 1
+     }
+   }else if (input$extent == "State") {
+     if (input$caseordeath == "cases") {
+       us_value_vector <- us_cases_state_max
+       extentBy <-  us_cases_state_max
+       values_COVID <- us_cases_state_max$cases
+       scalar <- 5000
+       opacity <- 1
+     } else {
+       us_value_vector <- us_deaths_state_max
+       extentBy <-  us_deaths_state_max
+       values_COVID <- us_deaths_state_max$deaths
+       scalar <- 5000
+       opacity <- 1
+     }
+   }
+
+   DT::datatable(us_value_vector, options = list(orderClasses = TRUE))
+ })
 }
 
 shinyApp(ui, server)
