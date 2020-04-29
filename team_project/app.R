@@ -24,6 +24,15 @@ us_deaths_county <- us_cases_daily$county %>%
 us_deaths_state <- us_cases_daily$state %>%
   filter((deaths > 0) & (!is.na(deaths)))
 
+
+us_cases_county_specic <- us_cases_county %>% select(county.x, state1) %>% distinct()
+
+
+us_cases_state_specic <- us_cases_state %>% select(state1) %>% distinct()
+
+
+
+
 ui <- bootstrapPage(
   span(textOutput("message"), style="color:red"),
 
@@ -33,13 +42,17 @@ ui <- bootstrapPage(
   sidebarPanel(selectInput("extent", "Geographic Extent", list("County", "State")),
                selectInput("colors", "Color Scheme", rownames(subset(brewer.pal.info, category %in%
                                               c("seq", "div")))
-                ),
+                )
+               ,
                 selectInput("caseordeath", "Cases/Deaths", list("Cases", "Deaths"))
                 ,
                 dateInput(inputId = "dateinput", label = "Input Date",
                           value = max(us_cases_county$date),
                           min = min(us_cases_county$date),
-                          max = max(us_cases_county$date)),
+                          max = max(us_cases_county$date))
+               ,
+                selectInput("state", "Choose State (Graphs)", us_cases_state_specic)
+               ,
                 checkboxInput("legend", "Show legend", TRUE)
 
 
@@ -180,6 +193,57 @@ server <- function(input, output, session) {
    }
 
    DT::datatable(us_value_vector, options = list(orderClasses = TRUE))
+ })
+
+ output$plot1 <- renderPlot({
+   us_cases_county_max <- us_cases_county %>% filter(date == input$dateinput)
+
+   us_cases_county_specic <- us_cases_county %>% select(county.x, state1) %>% distinct()
+
+   us_cases_state_max <- us_cases_state %>% filter(date == input$dateinput)
+
+   us_cases_state_specic <- us_cases_state %>% select(state1) %>% distinct()
+
+   us_deaths_county_max <- us_deaths_county %>% filter(date == input$dateinput)
+
+   us_deaths_state_max <- us_deaths_state %>% filter(date == input$dateinput)
+
+   if (input$extent == "County") {
+
+     if (input$caseordeath == "Cases") {
+       us_value_vector <- us_cases_county_max
+       extentBy <-  us_cases_county_max
+       values_COVID <- us_cases_county_max$cases
+       scalar <- 5000
+       opacity <- 1
+     } else {
+       us_value_vector <- us_deaths_county_max
+       extentBy <-  us_deaths_county_max
+       values_COVID <- us_deaths_county_max$deaths
+       scalar <- 5000
+       opacity <- 1
+     }
+   }else if (input$extent == "State") {
+     if (input$caseordeath == "cases") {
+       us_value_vector <- us_cases_state_max
+       extentBy <-  us_cases_state_max
+       values_COVID <- us_cases_state_max$cases
+       scalar <- 5000
+       opacity <- 1
+     } else {
+       us_value_vector <- us_deaths_state_max
+       extentBy <-  us_deaths_state_max
+       values_COVID <- us_deaths_state_max$deaths
+       scalar <- 5000
+       opacity <- 1
+     }
+   }
+   state_select <- us_cases_daily$state %>% filter(state1 == input$state)
+   plot(state_select$date, state_select$cases)
+ })
+
+ output$info <- renderText({
+   paste0("x=", input$plot_click$x, "\ny=", input$plot_click$y)
  })
 }
 
