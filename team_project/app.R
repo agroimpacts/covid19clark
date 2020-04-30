@@ -11,6 +11,7 @@ library(dplyr)
 library(rgdal)
 library(rsconnect)
 library(ggplot2)
+# devtools::install_version("MASS", "7.3-51.1")
 data("us_cases_daily")
 
 us_cases_county <- us_cases_daily$county %>%
@@ -62,6 +63,7 @@ ui <- bootstrapPage(
                leafletOutput('maps', width = "105%", height = 800)
       ),
       tabPanel("Graphs", plotOutput("plot1", click = "plot_click"),
+               plotOutput("plot2", click = "plot_click"),
                verbatimTextOutput("info")),
       tabPanel("Table", DT::dataTableOutput("table"))
     )),
@@ -228,25 +230,25 @@ server <- function(input, output, session) {
        values_COVID <- us_cases_county %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, cases)
        values_COVID_ <- log10(values_COVID$cases)
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      } else if (input$caseordeath == "case rate") {
        values_COVID_orig <- us_cases_county$caserate
        values_COVID <- us_cases_county %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, caserate)
        values_COVID_ <- values_COVID$caserate
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      } else if (input$caseordeath == "deaths") {
        values_COVID_orig <- us_deaths_county$deaths
        values_COVID <- us_deaths_county %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, deaths)
        values_COVID_ <- log10(values_COVID$deaths)
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      } else {
        values_COVID_orig <-us_deaths_county$deathrate
        values_COVID <- us_deaths_county %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, deathrate)
        values_COVID_ <- values_COVID$deathrate
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      }
 
    } else if (input$extent == "State") {
@@ -255,31 +257,103 @@ server <- function(input, output, session) {
        values_COVID <- us_cases_state %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, cases)
        values_COVID_ <- log10(values_COVID$cases)
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      } else if (input$caseordeath == "case rate") {
        values_COVID_orig <- us_cases_state$caserate
        values_COVID <- us_cases_state %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, caserate)
        values_COVID_ <- values_COVID$caserate
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      } else if (input$caseordeath == "deaths") {
        values_COVID_orig <- us_deaths_state$deaths
        values_COVID <- us_deaths_state %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, deaths)
        values_COVID_ <- log10(values_COVID$deaths)
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      } else {
        values_COVID_orig <- us_deaths_state$deathrate
        values_COVID <- us_deaths_state %>% filter(state1 == input$state)
        values_COVID <- values_COVID %>% select(date, deathrate)
        values_COVID_ <- values_COVID$deathrate
-       values_COVID_st <- values_COVID$date
+       values_COVID_dates <- values_COVID$date
      }
    }
-   ggplot() + geom_point(aes(values_COVID_st, values_COVID_)) +
-     ylim(0, max(log10(values_COVID_orig)))
+   ggplot() + geom_line(aes(values_COVID_dates, values_COVID_)) +
+     ylim(0, max(log10(values_COVID_orig))) + xlab("Recorded Dates") +
+     ylab(paste0(input$caseordeath))
+
 
    })
+ output$plot2 <- renderPlot({
+   us_cases_county_max <- us_cases_county %>% filter(date == input$dateinput)
+
+   us_cases_state_max <- us_cases_state %>% filter(date == input$dateinput)
+
+   us_deaths_county_max <- us_deaths_county %>% filter(date == input$dateinput)
+
+   us_deaths_state_max <- us_deaths_state %>% filter(date == input$dateinput)
+
+   if (input$extent == "County") {
+
+     if (input$caseordeath == "cases") {
+       us_value_vector <- us_cases_county_max
+       extentBy <-  us_cases_county_max
+       values_COVID <- us_cases_county_max$cases
+       scalar <- 6000
+       opacity <- 1
+     } else if (input$caseordeath == "case rate") {
+       us_value_vector <- us_cases_county_max
+       extentBy <-  us_cases_county_max
+       values_COVID <- us_cases_county_max$caserate
+       scalar <- 12000
+       opacity <- 1
+     } else if (input$caseordeath == "deaths") {
+       us_value_vector <- us_deaths_county_max
+       extentBy <-  us_deaths_county_max
+       values_COVID <- us_deaths_county_max$deaths
+       scalar <- 6000
+       opacity <- 1
+     } else {
+       us_value_vector <- us_deaths_county_max
+       extentBy <-  us_deaths_county_max
+       values_COVID <- us_deaths_county_max$deathrate
+       scalar <- 12000
+       opacity <- 1
+
+     }
+   } else if (input$extent == "State") {
+     if (input$caseordeath == "cases") {
+       us_value_vector <- us_cases_state_max
+       extentBy <-  us_cases_state_max
+       values_COVID <- us_cases_state_max$cases
+       scalar <- 6000
+       opacity <- 1
+     } else if (input$caseordeath == "case rate") {
+       us_value_vector <- us_cases_state_max
+       extentBy <-  us_cases_state_max
+       values_COVID <- us_cases_state_max$caserate
+       scalar <- 12000
+       opacity <- 1
+     } else if (input$caseordeath == "deaths") {
+       us_value_vector <- us_deaths_state_max
+       extentBy <-  us_deaths_state_max
+       values_COVID <- us_deaths_state_max$deaths
+       scalar <- 6000
+       opacity <- 1
+     } else {
+       us_value_vector <- us_deaths_state_max
+       extentBy <-  us_deaths_state_max
+       values_COVID <- us_deaths_state_max$deathrate
+       scalar <- 12000
+       opacity <- 1
+
+     }
+   }
+   barplot(height = values_COVID, names.arg = us_value_vector$state1,
+           xlab = "US States", ylab = input$caseordeath)
+
+ })
+
 
  output$info <- renderText({
    paste0("x=", input$plot_click$x, "\ny=", input$plot_click$y)
