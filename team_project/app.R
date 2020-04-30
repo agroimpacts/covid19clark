@@ -108,24 +108,28 @@ server <- function(input, output, session) {
         extentBy <-  us_cases_county_max
         values_COVID <- us_cases_county_max$cases
         scalar <- 6000
+        radvar <- log10(values_COVID) * scalar
         opacity <- 1
       } else if (input$caseordeath == "case rate") {
         us_value_vector <- us_cases_county_max
         extentBy <-  us_cases_county_max
         values_COVID <- us_cases_county_max$caserate
         scalar <- 12000
+        radvar <- sqrt(values_COVID) * scalar
         opacity <- 1
       } else if (input$caseordeath == "deaths") {
         us_value_vector <- us_deaths_county_max
         extentBy <-  us_deaths_county_max
         values_COVID <- us_deaths_county_max$deaths
         scalar <- 6000
+        radvar <- log10(values_COVID) * scalar
         opacity <- 1
       } else {
         us_value_vector <- us_deaths_county_max
         extentBy <-  us_deaths_county_max
         values_COVID <- us_deaths_county_max$deathrate
         scalar <- 12000
+        radvar <- sqrt(values_COVID) * scalar
         opacity <- 1
 
       }
@@ -134,25 +138,30 @@ server <- function(input, output, session) {
         us_value_vector <- us_cases_state_max
         extentBy <-  us_cases_state_max
         values_COVID <- us_cases_state_max$cases
-        scalar <- 6000
+        scalar <- 12000
+        radvar <- log10(values_COVID) * scalar
         opacity <- 1
       } else if (input$caseordeath == "case rate") {
         us_value_vector <- us_cases_state_max
         extentBy <-  us_cases_state_max
         values_COVID <- us_cases_state_max$caserate
-        scalar <- 12000
+        scalar <- 24000
+        radvar <- sqrt(values_COVID) * scalar
         opacity <- 1
       } else if (input$caseordeath == "deaths") {
         us_value_vector <- us_deaths_state_max
         extentBy <-  us_deaths_state_max
         values_COVID <- us_deaths_state_max$deaths
-        scalar <- 6000
+        scalar <- 12000
+        radvar <- log10(values_COVID) * scalar
         opacity <- 1
       } else {
         us_value_vector <- us_deaths_state_max
         extentBy <-  us_deaths_state_max
-        values_COVID <- us_deaths_state_max$deathrate
-        scalar <- 12000
+        values_COVID <- us_deaths_state_max %>% filter(deathrate > .1)
+        values_COVID <- values_COVID$deathrate
+        scalar <- 24000
+        radvar <- sqrt(values_COVID) * scalar
         opacity <- 1
 
       }
@@ -168,7 +177,7 @@ server <- function(input, output, session) {
       clearShapes() %>%
       addCircles(~extentBy$x, ~extentBy$y,
                  stroke=FALSE, fillOpacity=opacity,
-                 weight = 1, radius = log10(values_COVID) * scalar,
+                 weight = 1, radius = radvar,
                  popup = ~as.character(paste0(extentBy$county.x, sep = ", ", extentBy$state1)),
                  label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
                  color = ~pal(values_COVID)) %>%
