@@ -10,27 +10,25 @@ library(lattice)
 library(dplyr)
 library(rgdal)
 library(rsconnect)
+library(ggplot2)
 data("us_cases_daily")
 
 us_cases_county <- us_cases_daily$county %>%
-  filter((cases > 0) & (!is.na(cases)))
+  filter((cases > 0) & (!is.na(cases))) %>% mutate(., caserate = cases / (pop / 1000))
 
 us_cases_state <- us_cases_daily$state %>%
-  filter((cases > 0) & (!is.na(cases)))
+  filter((cases > 0) & (!is.na(cases))) %>% mutate(., caserate = cases / (pop / 1000))
 
 us_deaths_county <- us_cases_daily$county %>%
-  filter((deaths > 0) & (!is.na(deaths)))
+  filter((deaths > 0) & (!is.na(deaths))) %>% mutate(., deathrate = deaths / (pop / 1000))
 
 us_deaths_state <- us_cases_daily$state %>%
-  filter((deaths > 0) & (!is.na(deaths)))
-
+  filter((deaths > 0) & (!is.na(deaths))) %>% mutate(., deathrate = deaths / (pop / 1000))
 
 us_cases_county_specic <- us_cases_county %>% select(county.x, state1) %>% distinct()
 
 
 us_cases_state_specic <- us_cases_state %>% select(state1) %>% distinct()
-
-
 
 
 ui <- bootstrapPage(
@@ -39,12 +37,13 @@ ui <- bootstrapPage(
   tags$style(type = "text/css", "html, body {width:100%;height:100%}"),
   titlePanel("COVID19 Daily Cases/Deaths Data"),
   sidebarLayout(
-  sidebarPanel(selectInput("extent", "Geographic Extent", list("County", "State")),
+  sidebarPanel(selectInput("extent", "Geographic Extent", list("State", "County")),
                selectInput("colors", "Color Scheme", rownames(subset(brewer.pal.info, category %in%
                                               c("seq", "div")))
                 )
                ,
-                selectInput("caseordeath", "Cases/Deaths", list("Cases", "Deaths"))
+                selectInput("caseordeath", "cases/deaths",
+                            list("cases", "deaths", "case rate", "death rate"))
                 ,
                 dateInput(inputId = "dateinput", label = "Input Date",
                           value = max(us_cases_county$date),
@@ -102,32 +101,58 @@ server <- function(input, output, session) {
 
     if (input$extent == "County") {
 
-      if (input$caseordeath == "Cases") {
+      if (input$caseordeath == "cases") {
         us_value_vector <- us_cases_county_max
         extentBy <-  us_cases_county_max
         values_COVID <- us_cases_county_max$cases
         scalar <- 6000
         opacity <- 1
-      } else {
+      } else if (input$caseordeath == "case rate") {
+        us_value_vector <- us_cases_county_max
+        extentBy <-  us_cases_county_max
+        values_COVID <- us_cases_county_max$caserate
+        scalar <- 12000
+        opacity <- 1
+      } else if (input$caseordeath == "deaths") {
         us_value_vector <- us_deaths_county_max
         extentBy <-  us_deaths_county_max
         values_COVID <- us_deaths_county_max$deaths
         scalar <- 6000
         opacity <- 1
+      } else {
+        us_value_vector <- us_deaths_county_max
+        extentBy <-  us_deaths_county_max
+        values_COVID <- us_deaths_county_max$deathrate
+        scalar <- 12000
+        opacity <- 1
+
       }
-    }else if (input$extent == "State") {
+    } else if (input$extent == "State") {
       if (input$caseordeath == "cases") {
         us_value_vector <- us_cases_state_max
         extentBy <-  us_cases_state_max
         values_COVID <- us_cases_state_max$cases
         scalar <- 6000
         opacity <- 1
-      } else {
+      } else if (input$caseordeath == "case rate") {
+        us_value_vector <- us_cases_state_max
+        extentBy <-  us_cases_state_max
+        values_COVID <- us_cases_state_max$caserate
+        scalar <- 12000
+        opacity <- 1
+      } else if (input$caseordeath == "deaths") {
         us_value_vector <- us_deaths_state_max
         extentBy <-  us_deaths_state_max
         values_COVID <- us_deaths_state_max$deaths
         scalar <- 6000
         opacity <- 1
+      } else {
+        us_value_vector <- us_deaths_state_max
+        extentBy <-  us_deaths_state_max
+        values_COVID <- us_deaths_state_max$deathrate
+        scalar <- 12000
+        opacity <- 1
+
       }
     }
 
@@ -146,7 +171,7 @@ server <- function(input, output, session) {
                  label = ~as.character(paste0("Amount of", sep = " ", input$caseordeath, sep = ": ", values_COVID)),
                  color = ~pal(values_COVID)) %>%
       addLegend("topleft", pal=pal, values= ~values_COVID, title=colorBy,
-                layerId="colorLegend", bins = 50, labFormat = labelFormat())
+                layerId="colorLegend", labFormat = labelFormat())
 
   })
  output$table <- DT::renderDataTable({
@@ -163,7 +188,7 @@ server <- function(input, output, session) {
 
    if (input$extent == "County") {
 
-     if (input$caseordeath == "Cases") {
+     if (input$caseordeath == "cases") {
        us_value_vector <- us_cases_county_max
        extentBy <-  us_cases_county_max
        values_COVID <- us_cases_county_max$cases
@@ -191,56 +216,70 @@ server <- function(input, output, session) {
        opacity <- 1
      }
    }
-
-   DT::datatable(us_value_vector, options = list(orderClasses = TRUE))
+   us_value_vector_state <- us_value_vector %>% filter(state1 == input$state)
+   DT::datatable(us_value_vector_state, options = list(orderClasses = TRUE))
  })
 
  output$plot1 <- renderPlot({
-   us_cases_county_max <- us_cases_county %>% filter(date == input$dateinput)
-
-   us_cases_county_specic <- us_cases_county %>% select(county.x, state1) %>% distinct()
-
-   us_cases_state_max <- us_cases_state %>% filter(date == input$dateinput)
-
-   us_cases_state_specic <- us_cases_state %>% select(state1) %>% distinct()
-
-   us_deaths_county_max <- us_deaths_county %>% filter(date == input$dateinput)
-
-   us_deaths_state_max <- us_deaths_state %>% filter(date == input$dateinput)
 
    if (input$extent == "County") {
-
-     if (input$caseordeath == "Cases") {
-       us_value_vector <- us_cases_county_max
-       extentBy <-  us_cases_county_max
-       values_COVID <- us_cases_county_max$cases
-       scalar <- 5000
-       opacity <- 1
-     } else {
-       us_value_vector <- us_deaths_county_max
-       extentBy <-  us_deaths_county_max
-       values_COVID <- us_deaths_county_max$deaths
-       scalar <- 5000
-       opacity <- 1
-     }
-   }else if (input$extent == "State") {
      if (input$caseordeath == "cases") {
-       us_value_vector <- us_cases_state_max
-       extentBy <-  us_cases_state_max
-       values_COVID <- us_cases_state_max$cases
-       scalar <- 5000
-       opacity <- 1
+       values_COVID_orig <- us_cases_county$cases
+       values_COVID <- us_cases_county %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, cases)
+       values_COVID_ <- log10(values_COVID$cases)
+       values_COVID_st <- values_COVID$date
+     } else if (input$caseordeath == "case rate") {
+       values_COVID_orig <- us_cases_county$caserate
+       values_COVID <- us_cases_county %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, caserate)
+       values_COVID_ <- values_COVID$caserate
+       values_COVID_st <- values_COVID$date
+     } else if (input$caseordeath == "deaths") {
+       values_COVID_orig <- us_deaths_county$deaths
+       values_COVID <- us_deaths_county %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, deaths)
+       values_COVID_ <- log10(values_COVID$deaths)
+       values_COVID_st <- values_COVID$date
      } else {
-       us_value_vector <- us_deaths_state_max
-       extentBy <-  us_deaths_state_max
-       values_COVID <- us_deaths_state_max$deaths
-       scalar <- 5000
-       opacity <- 1
+       values_COVID_orig <-us_deaths_county$deathrate
+       values_COVID <- us_deaths_county %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, deathrate)
+       values_COVID_ <- values_COVID$deathrate
+       values_COVID_st <- values_COVID$date
+     }
+
+   } else if (input$extent == "State") {
+     if (input$caseordeath == "cases") {
+       values_COVID_orig <- us_cases_state$cases
+       values_COVID <- us_cases_state %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, cases)
+       values_COVID_ <- log10(values_COVID$cases)
+       values_COVID_st <- values_COVID$date
+     } else if (input$caseordeath == "case rate") {
+       values_COVID_orig <- us_cases_state$caserate
+       values_COVID <- us_cases_state %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, caserate)
+       values_COVID_ <- values_COVID$caserate
+       values_COVID_st <- values_COVID$date
+     } else if (input$caseordeath == "deaths") {
+       values_COVID_orig <- us_deaths_state$deaths
+       values_COVID <- us_deaths_state %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, deaths)
+       values_COVID_ <- log10(values_COVID$deaths)
+       values_COVID_st <- values_COVID$date
+     } else {
+       values_COVID_orig <- us_deaths_state$deathrate
+       values_COVID <- us_deaths_state %>% filter(state1 == input$state)
+       values_COVID <- values_COVID %>% select(date, deathrate)
+       values_COVID_ <- values_COVID$deathrate
+       values_COVID_st <- values_COVID$date
      }
    }
-   state_select <- us_cases_daily$state %>% filter(state1 == input$state)
-   ggplot() + geom_line(aes(state_select$date, log10(state_select$cases))) + geom_line(aes(state_select$date,log10(state_select$deaths)))
- })
+   ggplot() + geom_point(aes(values_COVID_st, values_COVID_)) +
+     ylim(0, max(log10(values_COVID_orig)))
+
+   })
 
  output$info <- renderText({
    paste0("x=", input$plot_click$x, "\ny=", input$plot_click$y)
