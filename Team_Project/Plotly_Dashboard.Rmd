@@ -98,7 +98,7 @@ fig1 <- fig1 %>% layout(
 fig1 <- fig1 %>% layout(margin = m,
     mapbox=list(
         style="carto-positron",
-        zoom =2,
+        zoom =2.6,
         center=list(lon= -95.71, lat=37.09))
 )
 fig1
@@ -169,7 +169,7 @@ fig2 <- fig2 %>% layout(
 fig2 <- fig2 %>% layout(margin = m,
     mapbox=list(
         style="carto-positron",
-        zoom =2,
+        zoom =2.6,
         center=list(lon= -95.71, lat=37.09))
 )
 fig2
@@ -247,7 +247,7 @@ fig3 <- fig3 %>% layout(
 fig3 <- fig3 %>% layout(margin = m,
     mapbox=list(
         style="carto-positron",
-        zoom =2,
+        zoom =2.6,
         center=list(lon= -95.71, lat=37.09))
 )
 fig3
@@ -320,7 +320,7 @@ fig4 <- fig4 %>% layout(
 fig4 <- fig4 %>% layout(margin = m,
     mapbox=list(
         style="carto-positron",
-        zoom =2,
+        zoom =2.6,
         center=list(lon= -95.71, lat=37.09))
 )
 fig4
