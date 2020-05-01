@@ -1,6 +1,6 @@
 ---
 title: "U.S. Coronavirus Daily Cases/Deaths"
-author: "Olivia Landry"
+author: "Olivia Landry & Zoe Maymon"
 date: "`r Sys.Date()`"
 output: 
   flexdashboard::flex_dashboard:
