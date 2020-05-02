@@ -4,14 +4,26 @@ subtitle: By Zoe Maymon and Olivia Landry
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: ["default", "tamu-fonts", "metropolis", "themes/class18.css"]
+    css: ["default", "chocolate-fonts", "tamu"]
     nature:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
 ---
+## COVID-19 Summary
 
 ```{r eval=FALSE}
 
+
 ```
+
+---
+
+## Shiny
+
+---
+
+## Plotly
+
+---
 
