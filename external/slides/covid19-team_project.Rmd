@@ -1,0 +1,17 @@
+---
+title: "Geospatial Analysis with R Final Project: COVID19"
+subtitle: By Zoe Maymon and Olivia Landry
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    css: ["default", "tamu-fonts", "metropolis", "themes/class18.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+```{r eval=FALSE}
+
+```
+
