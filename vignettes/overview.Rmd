@@ -83,7 +83,6 @@ interesting ways.
 
 
 ```{r, warning = FALSE, message = FALSE}
-#Setup
 library(ggplot2)
 library(tidyverse)
 library(COVID19)
@@ -105,37 +104,41 @@ library("sf")
 
 
 ```{r, warning = FALSE, message = FALSE}
-#Map of Just the U.S. Showing Cases and Deaths 
-require(maps)
-United_States = map_data("state")
+
+#Map of Just the US Showing Cases, Deaths, and Recovered Data 
+counties <- map_data("county")
+# US <- df %>% filter(country == "US")
 ggplot(data = us_cases_daily$county) + 
-  geom_polygon(data = United_States, aes(x = long, y = lat, group = group), fill = 'NA', colour = 'black') + geom_point(data = us_cases_daily$county %>% filter(cases > 0),
-             aes(x = x, y = y, color = "cases"), size = 1) + 
+  geom_point(data = us_cases_daily$county %>% filter(cases > 0),
+             aes(x = x, y = y, color = "cases")) + 
   geom_point(data = us_cases_daily$county %>% filter(deaths > 0), 
-             aes(x = x, y = y, color = 'deaths'), size = 1) + 
-  scale_colour_manual(NULL, values = c(cases = "blue",
-                                       deaths = "red")) +
-  labs(title="Map of U.S. Showing Cases and Deaths") + 
+             aes(x = x, y = y, color = 'deaths')) + 
+  scale_colour_manual(NULL, values = c(cases = "red",
+                                       deaths = "blue", 
+                                       recovered = "purple")) + 
+  labs(title="Map of US Showing Cases, Deaths, and Recovered") + 
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
 #### Histograms
 
 ```{r, warning = FALSE, message = FALSE}
-#Histogram Showing U.S. Cases and Deaths Combined
+
+#Histogram Showing US Cases, Deaths, and Recovered Combined
 us_counties %>% ggplot() + 
-  geom_histogram(aes(x = x, fill = state), bins = 15, color = "white") + 
-  labs(title="Histogram Showing U.S. Cases and Deaths Combined", 
-       x = "Longitude") + theme(text = element_text(size=8.25)) + theme(legend.title = element_blank())
-#Histogram Showing U.S. Cases and Deaths Separately 
+  geom_histogram(aes(x = x, color = state, fill = state), bins = 15) + 
+  labs(title="Histogram Showing US Cases, Deaths, and Recovered Combined", 
+       x = "Longitude") + theme(text = element_text(size=10))
+
+#Histogram Showing US Cases and Deaths
   ggplot() + geom_histogram(data = us_cases_daily$county %>% 
                               filter(.$cases > 0),
-             aes(x = x, fill = "cases"), color = "white") + 
+             aes(x = x, color = "cases")) + 
   geom_histogram(data =us_cases_daily$county %>% filter(.$deaths > 0), 
-             aes(x = x, fill = "deaths"), color = "white") + 
-    labs(title="Histogram Showing U.S. Cases and Deaths", 
+             aes(x = x, color = 'deaths')) + 
+    labs(title="Histogram Showing US Cases and Deaths", 
          x = "Longitude", y = "Cases/Deaths") +
-  theme(plot.title = element_text(hjust = 0.5)) + theme(legend.title = element_blank())
+  theme(plot.title = element_text(hjust = 0.5))
 
 ```
 
@@ -147,14 +150,15 @@ us_counties %>% ggplot() +
  state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% 
   summarise(maxcases = max(cases))
  barplot(state_cases$maxcases, main = "Number of COVID-19 Cases by State", 
-         xlab = "U.S. States and Territories", ylab = "Number of Cases", 
-         names.arg = c(1:52), col = "purple")
+         xlab = "US States and Territories", ylab = "Number of Cases", 
+         names.arg = c(1:52))
+ 
 #Barplot Showing Number of COVID-19 Deaths by State
   state_deaths <- us_cases_daily$state %>% group_by(state1) %>% 
     select(deaths) %>% summarise(maxdeaths = max(deaths)) 
   barplot(state_deaths$maxdeaths, main = "Number of COVID-19 Deaths by State", 
-          xlab = "U.S. States and Territories", ylab = "Number of Deaths", 
-          names.arg = c(1:52), col = "purple")
+          xlab = "US States and Territories", ylab = "Number of Deaths", 
+          names.arg = c(1:52))
 ```
 
 
