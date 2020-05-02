@@ -1,0 +1,327 @@
+---
+title: "U.S. Coronavirus Daily Cases/Deaths"
+author: "Olivia Landry & Zoe Maymon"
+date: "`r Sys.Date()`"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+<style>                     
+.navbar {
+  background-color:#ab1c13;
+  border-color:black;
+}
+.navbar-brand {
+color:white!important;
+}
+</style> 
+
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(plotly)
+library(COVID19)
+library(covid19clark)
+library(tigris)
+data("us_counties")
+data("us_cases_daily")
+data("fips_codes")
+library(tidyverse)
+library(geospaar)
+library(dplyr)
+library(RColorBrewer)
+library(gplots)
+
+```
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+ 
+### <font size="3"> Coronavirus Cases by US County
+</font> 
+```{r}
+pal <- RColorBrewer::brewer.pal(9, "OrRd")
+df <- as.tibble(us_cases_daily$county)
+fips <- fips_codes
+fips$county <- str_remove(fips$county, " County")
+fips$county <- tolower(fips$county)
+fips$state_name <- tolower(fips$state_name)
+df <- df %>% left_join(fips, by = c("state1" = "state_name", "county.x" = "county")) %>%
+    mutate(., FIPS = paste0(state_code, county_code)) %>% filter(!is.na(date) & (cases > 0))
+df <- df %>% filter(df$date == max(df$date))
+classInt <- classInt::classIntervals(df$cases, 8, style = "jenks")
+df <- df %>% mutate(breaks = cut(cases, breaks = classInt$brks)) %>% filter(!is.na(breaks)) %>% group_by(breaks)
+library(rjson)
+url <- 'https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+counties <- rjson::fromJSON(file=url)
+g <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showlakes = TRUE,
+    lakecolor = toRGB('white')
+)
+
+
+fig1 <- plot_ly()
+colorscale= pal
+
+df$county_capital <-  gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2",   
+     df$county.x,
+     perl = TRUE)
+df$hover <- paste(df$county_capital, '<br>', "Cases:", df$cases, '<br>', "Population:", df$pop)
+fig1 <- fig1 %>% add_trace(
+    type="choroplethmapbox",
+    geojson=counties,
+    locations=df$FIPS,
+    z=log10(df$cases),
+    colors = colorscale,
+    zmin=log10(min(classInt$brks)),
+    zmid=log10(median(classInt$brks)),
+    zmax=log10(max(classInt$brks)),
+    marker=list(line=list(width=0)),
+    text = df$hover,
+    hoverinfo = "text"
+)
+
+m <- list(
+  l = 0,
+  r = 0,
+  b = 0,
+  t = 0
+)
+fig1 <- fig1 %>% colorbar(title = "COVID-19 Cases <br> (Log Values)", limits = log10(c(1, 40000)))
+fig1 <- fig1 %>% layout(
+     geo=g
+)
+
+fig1 <- fig1 %>% layout(margin = m,
+    mapbox=list(
+        style="carto-positron",
+        zoom =2.6,
+        center=list(lon= -95.71, lat=37.09))
+)
+fig1
+```
+
+
+### <font size="3"> Coronavirus Deaths by US County
+</font> 
+
+```{r}
+pal <- RColorBrewer::brewer.pal(9, "OrRd")
+df <- as.tibble(us_cases_daily$county)
+fips <- fips_codes
+fips$county <- str_remove(fips$county, " County")
+fips$county <- tolower(fips$county)
+fips$state_name <- tolower(fips$state_name)
+df <- df %>% left_join(fips, by = c("state1" = "state_name", "county.x" = "county")) %>%
+    mutate(., FIPS = paste0(state_code, county_code)) %>% filter(!is.na(date) & (deaths > 0))
+df <- df %>% filter(df$date == max(df$date))
+classInt <- classInt::classIntervals(df$deaths, 8, style = "jenks")
+df <- df %>% mutate(breaks = cut(deaths, breaks = classInt$brks)) %>% filter(!is.na(breaks)) %>% group_by(breaks)
+library(rjson)
+url <- 'https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+counties <- rjson::fromJSON(file=url)
+g <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showlakes = TRUE,
+    lakecolor = toRGB('white')
+)
+
+
+
+fig2 <- plot_ly()
+colorscale= pal
+
+df$county_capital <-  gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2",   
+     df$county.x,
+     perl = TRUE)
+df$hover <- paste(df$county_capital, '<br>', "Deaths:", df$deaths, '<br>', "Population:", df$pop)
+fig2 <- fig2 %>% add_trace(
+    type="choroplethmapbox",
+    geojson=counties,
+    locations=df$FIPS,
+    z=log10(df$deaths),
+    colors = colorscale,
+    zmin=log10(min(classInt$brks)),
+    zmid=log10(median(classInt$brks)),
+    zmax=log10(max(classInt$brks)),
+    marker=list(line=list(width=0)),
+    text = df$hover,
+    hoverinfo = "text"
+)
+
+m <- list(
+  l = 0,
+  r = 0,
+  b = 0,
+  t = 0
+)
+
+
+fig2 <- fig2 %>% colorbar(title = "COVID-19 Deaths <br> (Log Values)", limits = log10(c(1, 40000)))
+fig2 <- fig2 %>% layout(
+     geo=g
+)
+
+fig2 <- fig2 %>% layout(margin = m,
+    mapbox=list(
+        style="carto-positron",
+        zoom =2.6,
+        center=list(lon= -95.71, lat=37.09))
+)
+fig2
+```
+
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### <font size="3"> Coronavirus Cases Per 1000 People By US County
+</font> 
+
+```{r}
+pal <- RColorBrewer::brewer.pal(9, "OrRd")
+df <- as.tibble(us_cases_daily$county)
+fips <- fips_codes
+fips$county <- str_remove(fips$county, " County")
+fips$county <- tolower(fips$county)
+fips$state_name <- tolower(fips$state_name)
+df <- df %>% left_join(fips, by = c("state1" = "state_name", "county.x" = "county")) %>%
+    mutate(., FIPS = paste0(state_code, county_code)) %>% filter(!is.na(date) & (cases > 0))
+df <- df %>% filter(df$date == max(df$date))
+classInt <- classInt::classIntervals(df$cases, 8, style = "jenks")
+df <- df %>% mutate(breaks = cut(cases, breaks = classInt$brks)) %>% filter(!is.na(breaks)) %>% group_by(breaks)
+library(rjson)
+url <- 'https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+counties <- rjson::fromJSON(file=url)
+df <- df %>% 
+  mutate(case_rate = (cases*1000) / pop)
+
+round_case_rt <- round(df$case_rate, digits = 3)
+g <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showlakes = TRUE,
+    lakecolor = toRGB('white')
+)
+
+
+
+fig3 <- plot_ly()
+colorscale= pal
+
+df$county_capital <-  gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2",   
+     df$county.x,
+     perl = TRUE)
+df$hover <- paste(df$county_capital, '<br>', "Cases:", df$cases, '<br>', "Cases Per 1000:", round_case_rt, '<br>', "Population:", df$pop)
+fig3 <- fig3 %>% add_trace(
+    type="choroplethmapbox",
+    geojson=counties,
+    locations=df$FIPS,
+    z=df$case_rate,
+    colors = colorscale,
+    zmin=log10(min(classInt$brks)),
+    zmid=log10(median(classInt$brks)),
+    zmax=log10(max(classInt$brks)),
+    marker=list(line=list(width=0)),
+    text = df$hover,
+    hoverinfo = "text"
+)
+
+
+m <- list(
+  l = 0,
+  r = 0,
+  b = 0,
+  t = 0
+)
+
+fig3 <- fig3 %>% colorbar(title = "COVID-19 Cases <br> (Log Values)", limits = log10(c(1, 40000)))
+fig3 <- fig3 %>% layout(
+     geo=g
+)
+
+fig3 <- fig3 %>% layout(margin = m,
+    mapbox=list(
+        style="carto-positron",
+        zoom =2.6,
+        center=list(lon= -95.71, lat=37.09))
+)
+fig3
+```
+
+### <font size="3"> Coronavirus Deaths Per 1000 People By US County
+</font>
+
+```{r}
+pal <- RColorBrewer::brewer.pal(9, "OrRd")
+df <- as.tibble(us_cases_daily$county)
+fips <- fips_codes
+fips$county <- str_remove(fips$county, " County")
+fips$county <- tolower(fips$county)
+fips$state_name <- tolower(fips$state_name)
+df <- df %>% left_join(fips, by = c("state1" = "state_name", "county.x" = "county")) %>%
+    mutate(., FIPS = paste0(state_code, county_code)) %>% filter(!is.na(date) & (deaths > 0))
+df <- df %>% filter(df$date == max(df$date))
+classInt <- classInt::classIntervals(df$deaths, 8, style = "jenks")
+df <- df %>% mutate(breaks = cut(deaths, breaks = classInt$brks)) %>% filter(!is.na(breaks)) %>% group_by(breaks)
+library(rjson)
+url <- 'https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+counties <- rjson::fromJSON(file=url)
+df <- df %>% 
+  mutate(death_rate = (deaths*1000) / pop)
+round_death_rt <- round(df$death_rate, digits = 3)
+
+g <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showlakes = TRUE,
+    lakecolor = toRGB('white')
+)
+
+
+
+fig4 <- plot_ly()
+colorscale= pal
+
+df$county_capital <-  gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2",   
+     df$county.x,
+     perl = TRUE)
+df$hover <- paste(df$county_capital, '<br>', "Deaths:", df$deaths, '<br>', "Deaths Per 1000:", round_death_rt, '<br>', "Population:", df$pop)
+fig4 <- fig4 %>% add_trace(
+    type="choroplethmapbox",
+    geojson=counties,
+    locations=df$FIPS,
+    z=df$death_rate,
+    colors = colorscale,
+    zmin=log10(min(classInt$brks)),
+    zmid=log10(median(classInt$brks)),
+    zmax=log10(max(classInt$brks)),
+    marker=list(line=list(width=0)),
+    text = df$hover,
+    hoverinfo = "text" 
+)
+
+m <- list(
+  l = 0,
+  r = 0,
+  b = 0,
+  t = 0
+)
+
+fig4 <- fig4 %>% colorbar(title = "COVID-19 Deaths <br> (Log Values)", limits = log10(c(1, 40000)))
+fig4 <- fig4 %>% layout(
+     geo=g
+)
+
+fig4 <- fig4 %>% layout(margin = m,
+    mapbox=list(
+        style="carto-positron",
+        zoom =2.6,
+        center=list(lon= -95.71, lat=37.09))
+)
+fig4
+```
