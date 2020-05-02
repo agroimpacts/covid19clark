@@ -1,0 +1,269 @@
+---
+title: "Geospatial Analysis with R Project Proposal"
+subtitle: "GEOG346"
+author: "Zoe Maymon and Olivia Landry"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+    highlight: github
+    fig_caption: yes
+    number_sections: yes
+    toc_depth: 4
+    toc: yes
+    css: unit.css
+vignette: >
+  %\VignetteIndexEntry{Geospatial Analysis with R Project Proposal}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Summary
+
+The goal of this project is to create an interactive dashboard to display daily 
+COVID-19 data pulled from Johns Hopkins University and to compare the 
+differences between the representation abilities of two packages (Plotly and 
+Shiny). With this, we will be able to exhibit and analyze the COVID-19 data to 
+address the goals and objectives of this project. We will focus on all of the 
+COVID-19 cases within the United States and work with county level data. We hope
+to display graphs/charts and maps showing which areas of the country are 
+impacted the most from the COVID-19 crisis and the extent of these impacts.
+
+**Primary Objectives:**
+
+- Learn how to use Shiny and Plotly, read through tutorials
+
+- Implement packages with Johns Hopkins data and create designs for modules and 
+Github page/Shiny.io web page
+
+- Implement packages with Johns Hopkins data and create designs for modules and 
+Github page/Shiny.io web page
+
+- Finish final draft of modules and github page/Shiny.io web page
+
+- Create rmarkdown slides vignette using geospaar slides as a template- record 
+for 6-8 min, meaning have 6-8 slides
+
+# Approach and Method
+
+## Data
+
+The dataset that we are using for our project is the Johns Hopkins University 
+COVID-19 repository. More specifically, daily data reports come from the 2019 
+Novel Coronavirus Visual Dashboard operated by the Johns Hopkins University 
+Center for Systems Science and Engineering (JHU CSSE). Case and death data will 
+be displayed using both Shiny and Plotly packages, which each have the 
+capability of creating interactive maps and charts. Shiny will be used to create
+a dashboard for which both map(s) and chart(s)/graphs(s) will be displayed. In 
+coordination with Shiny, Leaflet will be used to develop the basemap and to 
+display geospatial data for the map portion of the data. The Shiny-based 
+dashboard will also give the user the ability to select which information they 
+would like to view (i.e. cases, deaths, hot spots, etc.). Hot spots will be 
+developed for Shiny using the Hotspot R package. Additional options will be 
+included such as the ability for the user to query out a specific state/county.
+For Plotly, we will be using a similar visualization set-up as we will compare
+and contrast it with Shiny based on its capability to display COVID-19 case and 
+death data. The benefit of using a package such as Plotly is its ability to 
+create professional looking graphs and charts, with a high level of 
+customization. Scatter plots can be used to show a temporal analysis of the US 
+or a specific state or county. Similarly to Shiny, there is a level of 
+interactivity which allows the user to select specific settings (move 
+sliders, pick from a list of choices, etc.) that change the display in 
+interesting ways.
+
+ 
+### Visualizations
+
+
+```{r, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(tidyverse)
+library(COVID19)
+library(covid19clark)
+data("us_counties")
+data("us_cases_daily")
+library(devtools)
+library(dplyr)
+library(stringr)
+library(maps)
+library(mapdata)
+library(ggmap)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("sf")
+```
+
+#### Maps
+
+
+```{r, warning = FALSE, message = FALSE}
+
+#Map of Just the US Showing Cases, Deaths, and Recovered Data 
+counties <- map_data("county")
+# US <- df %>% filter(country == "US")
+ggplot(data = us_cases_daily$county) + 
+  geom_point(data = us_cases_daily$county %>% filter(cases > 0),
+             aes(x = x, y = y, color = "cases")) + 
+  geom_point(data = us_cases_daily$county %>% filter(deaths > 0), 
+             aes(x = x, y = y, color = 'deaths')) + 
+  scale_colour_manual(NULL, values = c(cases = "red",
+                                       deaths = "blue", 
+                                       recovered = "purple")) + 
+  labs(title="Map of US Showing Cases, Deaths, and Recovered") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+#### Histograms
+
+```{r, warning = FALSE, message = FALSE}
+
+#Histogram Showing US Cases, Deaths, and Recovered Combined
+us_counties %>% ggplot() + 
+  geom_histogram(aes(x = x, color = state, fill = state), bins = 15) + 
+  labs(title="Histogram Showing US Cases, Deaths, and Recovered Combined", 
+       x = "Longitude") + theme(text = element_text(size=10))
+
+#Histogram Showing US Cases and Deaths
+  ggplot() + geom_histogram(data = us_cases_daily$county %>% 
+                              filter(.$cases > 0),
+             aes(x = x, color = "cases")) + 
+  geom_histogram(data =us_cases_daily$county %>% filter(.$deaths > 0), 
+             aes(x = x, color = 'deaths')) + 
+    labs(title="Histogram Showing US Cases and Deaths", 
+         x = "Longitude", y = "Cases/Deaths") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+#### Barplots
+
+
+```{r, warning = FALSE, message = FALSE}
+#Barplot Showing Number of COVID-19 Cases by State
+ state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% 
+  summarise(maxcases = max(cases))
+ barplot(state_cases$maxcases, main = "Number of COVID-19 Cases by State", 
+         xlab = "US States and Territories", ylab = "Number of Cases", 
+         names.arg = c(1:52))
+ 
+#Barplot Showing Number of COVID-19 Deaths by State
+  state_deaths <- us_cases_daily$state %>% group_by(state1) %>% 
+    select(deaths) %>% summarise(maxdeaths = max(deaths)) 
+  barplot(state_deaths$maxdeaths, main = "Number of COVID-19 Deaths by State", 
+          xlab = "US States and Territories", ylab = "Number of Deaths", 
+          names.arg = c(1:52))
+```
+
+
+## Code
+
+- Create Devel branch which will act as our master branch for this project
+
+- Create branches for both Shiny and Plotly portions of the 
+project (feature/shiny, feature/plotly)
+
+- Create separate R vignettes for the Shiny and Plotly packages
+
+- Test out functionality of both Shiny (Zoe’s portion of the project) and Plotly 
+(Olivia’s portion of the project) packages with COVID-19 data 
+
+- Run the hotspot R package in order to generate a COVID-19 hotspot raster file 
+(Zoe)
+
+- Shiny application development (through creation of UI and Server files) and 
+integration with Leaflet R package (for basemap and basic mapping purposes) 
+(Zoe)
+
+- Reference prior-processed JHU COVID-19 data and hotspot raster when mapping 
+the layers in the interface (Zoe)
+
+- Add additional widgets/options into the UI interface for further interactivity 
+(Zoe)
+
+- Conclude on final formatting of dashboard interface (Zoe)
+
+- Plotly application development referencing prior-processed JHU COVID-19 data 
+(Olivia)
+
+- Creation of interactive graphs and charts of the COVID-19 data, with developed 
+symbology and interactive capabilities (Olivia)
+
+- Display Shiny visualizations on Shiny.io web page and Plotly visualizations on
+Github Pages web space (Zoe and Olivia)
+
+- Finalize end-product vignette with Shiny and Plotly applications with detailed 
+attached report (Zoe and Olivia)
+
+## Timelines
+
+### Broad Timeline
+
+- Week 1 (04/20/20): Work with packages and have test outputs/results 
+
+- Week 2 (04/27/20): Iron out final versions of graphics 
+
+- Week 3 (05/04/20): Have presentation ready and finish write up (on or before 
+midnight on 4 May, 2020)
+
+### More Specific Timeline 
+
+- 04/14/20: Zoe finishes beginning stages of experimenting with Shiny, Olivia 
+finishes beginning stages of experimenting with Plotly
+
+- 04/15/20: Project Proposal Draft Submitted
+
+- 04/19/20: Zoe finishes rough draft of outputs from Shiny, Olivia finishes 
+rough draft of outputs from Plotly
+
+- 04/20/20: Zoe and Olivia meet to present drafted results and give each other 
+feedback
+
+- 04/24/20: Zoe finishes reworked outputs from Shiny, Olivia finishes reworked 
+outputs from Plotly
+
+- 04/25/20: Zoe and Olivia meet to show each other final outputs and give 
+feedback
+
+- 04/29/20: Zoe adds the Shiny and Plotly outputs to a Shiny.io interface and 
+Github Pages interface
+
+- 04/29/20: Have rough draft of presentation complete- Zoe will record work with 
+Shiny and Olivia will record work with Plotly
+
+- 04/30/20: Zoe and Olivia meet to give feedback on presentation recordings
+
+- 05/01/20: Presentation should be complete and Zoe and Olivia will break up the 
+final project submission
+
+- 05/03/20: Draft of final project submission complete, Zoe and Olivia meet to 
+give feedback
+
+- 05/04/20: Final of final project submission complete, Zoe and Olivia meet to 
+submit presentation and final project together
+
+## Anticipated Outcome
+
+- Expect to meet the timeline we set for ourselves, with continuing 
+communication regarding goals and project milestones
+
+- Provide rough draft examples of Shiny and Plotly R package implementation
+
+- Provide quality interactive data visualization interfaces, using the Shiny
+and Plotly R packages, displaying continuously updated JHU COVID-19 data
+ 
+- Create a Github Page and a Shiny.io web page to embed data visualization 
+applications in the platforms
+
+- Provide thoughtful recordings and presentations of both Shiny and Plotly 
+aspects of the project
+
+- Develop R project vignette with data visualization applications and project 
+report, with sections regarding an introduction/our goals, methods, output 
+applications, and thoughts on R packages
