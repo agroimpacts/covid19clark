@@ -20,14 +20,33 @@ output:
 
 * In Massachusetts there are over 65,000 confirmed cases and over 3,000 deaths.
 
-```{r eval=FALSE}
+---
+## COVID19clark Package
+* Project was based on "COVID19clark" R package, primarily assembled and developed 
+by Dr. Lyndon Estes.
 
- 
-```
+* Package is adapted from Rami Krispin's "coronavirus" R package 
+(https://github.com/RamiKrispin/coronavirus) and data is gathered from Johns 
+Hopkins University COVID-19 data repository 
+(https://github.com/CSSEGISandData/COVID-19/).
+  * Rami's package was used to create this data dashboard of COVID-19 cases: 
+  https://ramikrispin.github.io/coronavirus_dashboard/
+
+* The COVID19clark package summarizes the COVID-19 data from JHU and maps its 
+severity in the northeastern United States and graphs the amount of cases and deaths.
 
 ---
 
 ## Shiny
+
+#### Summary
+
+* Shiny is a free R package that allows the user to create interactice web 
+applications. 
+
+* The current version of Shiny is 1.4.0.2
+
+
 
 ---
 
