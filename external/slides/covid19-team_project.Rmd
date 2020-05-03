@@ -10,11 +10,32 @@ output:
       highlightLines: true
       countIncrementalSlides: false
 ---
+
+```{r echo=FALSE, message=FALSE}
+#Setup
+library(ggplot2)
+library(tidyverse)
+library(COVID19)
+library(covid19clark)
+data("us_counties")
+data("us_cases_daily")
+library(devtools)
+library(dplyr)
+library(stringr)
+library(maps)
+library(mapdata)
+library(ggmap)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("sf")
+```
+
+
 ## COVID-19 Summary
 
 * COVID-19 derives from a coronavirus named SARS-CoV-2 and tends to spread through saliva droplets when a person coughs or through nose discharge when a person sneezes.
 
-* Most peope with the virus will experience respiratory illness and recover without hospitalization but it more seriously affects older adults and people with underlying medical condiditons. 
+* Most people with the virus will experience respiratory illness and recover without hospitalization, but it more seriously affects older adults and people with underlying medical conditions. 
 
 * There are currently over 1 million confirmed cases in the United States and over 65,000 deaths. 
 
@@ -22,18 +43,75 @@ output:
 
 ---
 ## COVID19clark Package
-* Project was based on "COVID19clark" R package, primarily assembled and developed 
-by Dr. Lyndon Estes.
+* Our project was based on the "COVID19clark" R package, primarily assembled and developed by Dr. Lyndon Estes.
 
-* Package is adapted from Rami Krispin's "coronavirus" R package 
-(https://github.com/RamiKrispin/coronavirus) and data is gathered from Johns 
+* The package is adapted from Rami Krispin's "coronavirus" R package 
+(https://github.com/RamiKrispin/coronavirus) and data is gathered from the Johns 
 Hopkins University COVID-19 data repository 
 (https://github.com/CSSEGISandData/COVID-19/).
-  * Rami's package was used to create this data dashboard of COVID-19 cases: 
+  * Krispin's package was used to create this data dashboard of COVID-19 cases: 
   https://ramikrispin.github.io/coronavirus_dashboard/
 
-* The COVID19clark package summarizes the COVID-19 data from JHU and maps its 
-severity in the northeastern United States and graphs the amount of cases and deaths.
+* The COVID19clark package summarizes the COVID-19 data from JHU, maps its 
+severity in the northeastern United States, and graphs the amount of cases and deaths within the area.
+
+
+---
+## Data Visualizations
+
+#### Chart 1
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5, fig.height= 6.5}
+
+ ggplot() + geom_histogram(data = us_cases_daily$county %>% 
+                              filter(.$cases > 0),
+             aes(x = x, fill = "cases"), color = "white") + 
+  geom_histogram(data =us_cases_daily$county %>% filter(.$deaths > 0), 
+             aes(x = x, fill = "deaths"), color = "white") + 
+    labs(title="Histogram Showing U.S. Cases and Deaths", 
+         x = "Longitude", y = "Cases/Deaths") +
+  theme(plot.title = element_text(hjust = 0.5)) + theme(legend.title = element_blank())
+
+```
+
+
+---
+#### Chart 2
+
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5}
+
+state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% 
+  summarise(maxcases = max(cases))
+ barplot(state_cases$maxcases, main = "Number of COVID-19 Cases by State", 
+         xlab = "U.S. States and Territories", ylab = "Number of Cases", 
+         names.arg = c(1:52), col = "purple")
+
+```
+
+
+---
+#### Chart 3
+
+
+
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5}
+
+state_deaths <- us_cases_daily$state %>% group_by(state1) %>% 
+    select(deaths) %>% summarise(maxdeaths = max(deaths)) 
+  barplot(state_deaths$maxdeaths, main = "Number of COVID-19 Deaths by State", 
+          xlab = "U.S. States and Territories", ylab = "Number of Deaths", 
+          names.arg = c(1:52), col = "purple")
+
+```
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -41,18 +119,18 @@ severity in the northeastern United States and graphs the amount of cases and de
 
 #### Summary
 
-* Shiny is a free R package that allows the user to create interactice web 
-applications. 
+* Shiny is a free R package that allows users to create interactive web 
+applications 
 
 * The current version of Shiny is 1.4.0.2
 
-* No Javascript is required for usage and can use only web mapping platforms
-such as Leaflet and Mapbox.
+* No Javascript is required for usage, and it can only use web mapping platforms
+such as Leaflet and Mapbox
 
-* Can be downloaded using CRAN or Github.
+* Can be downloaded using CRAN or Github
 
 * Can be published onto R Studio's designated Shiny App web server and can be 
-treated as a web application.
+treated as a web application
 
 ---
 
@@ -76,13 +154,12 @@ devtools::install_github("rstudio/shiny")
  
 ```
 ---
+
 ## Shiny
 
 #### Layout
 
-To create a basic app with Shiny use the following code chunk:
-
-Example:
+To create a basic app with Shiny use the following code chunk (example):
 
 ```{r eval = FALSE}
 library(shiny)
@@ -111,6 +188,7 @@ ui <- fluidPage(
 ```
 
 ---
+
 ```{r eval = FALSE}
 # Define server logic required to draw a histogram ----
 server <- function(input, output) {
@@ -150,11 +228,12 @@ slider for how many bins there are in the random normal distribution bar chart.
 ggplot2 graphs and custom interfaces using the open source JavaScript graphic 
 library (plotly.js).
 
-* The current version of Plotly is 4.9.2.1 and was released on April 4th, 2020.
+* The current version of Plotly is 4.9.2.1
+
+* It can use web mapping platforms such as Leaflet and Mapbox
 
 * It can be downloaded using CRAN or Github and uses htmlwidgets to create 
 interactive dashboards.
-
 
 
 ---
@@ -210,3 +289,12 @@ the data frame.
 coordinate/latitude of your data, changing the color of your chart, changing the 
 type of your chart, changing the symbol of your chart, among others.  
 
+---
+
+## Concluding Remarks
+
+* Both the Shiny and Plotly aspects of our poject provide accurate depictions of cases and deaths in the United States but could be made even more successful with additions of interactive dropdown menus and charts.
+
+* As more and more data is being created each day, more aspects can be added to this project including number of current COVID-19 tests in the United States.
+
+* This work is highly important and we hope to both be a part of continuing this work into the future. 
