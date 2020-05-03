@@ -1,17 +1,17 @@
 library(shiny)
 library(leaflet)
 library(RColorBrewer)
-install.packages("COVID19")
+#install.packages("COVID19")
 library(COVID19)
-install.packages("covid19clark")
+#install.packages("covid19clark")
 library(covid19clark)
 library(scales)
 library(lattice)
 library(dplyr)
 library(rgdal)
-#library(rsconnect)
+library(rsconnect)
 library(ggplot2)
-# devtools::install_version("MASS", "7.3-51.1")
+#::install_version("MASS", "7.3-51.1")
 data("us_cases_daily")
 
 us_cases_county <- us_cases_daily$county %>%
@@ -85,7 +85,7 @@ server <- function(input, output, session) {
         urlTemplate = "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
         attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
       ) %>%
-      setView(lng = -93.85, lat = 37.45, zoom = 4.5)
+      setView(lng = -71.05, lat = 42.36, zoom = 6)
   })
 
 
