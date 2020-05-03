@@ -1,10 +1,10 @@
 ---
-title: "Geospatial Analysis with R Final Project: COVID19"
+title: "Geospatial Analysis with R Final Presentation: COVID-19"
 subtitle: By Zoe Maymon and Olivia Landry
 output:
   xaringan::moon_reader:
     lib_dir: libs
-    css: ["default", "chocolate-fonts", "tamu"]
+    css: ["default", "rladies-fonts", "tamu"]
     nature:
       highlightStyle: github
       highlightLines: true
@@ -12,9 +12,17 @@ output:
 ---
 ## COVID-19 Summary
 
+* COVID-19 derives from a coronavirus named SARS-CoV-2 and tends to spread through saliva droplets when a person coughs or through nose discharge when a person sneezes.
+
+* Most peope with the virus will experience respiratory illness and recover without hospitalization but it more seriously affects older adults and people with underlying medical condiditons. 
+
+* There are currently over 1 million confirmed cases in the United States and over 65,000 deaths. 
+
+* In Massachusetts there are over 65,000 confirmed cases and over 3,000 deaths.
+
 ```{r eval=FALSE}
 
-
+ 
 ```
 
 ---
@@ -25,5 +33,61 @@ output:
 
 ## Plotly
 
+#### Summary
+
+* Plotly is a free R package that can be used to create interactive maps with ggplot2 graphs and custom interfaces using the open source JavaScript graphic library (plotly.js).
+
+* The current version of Plotly is 4.9.2.1 and was released on April 4th, 2020.
+
+* It can be downloaded using CRAN or Github and uses htmlwidgets to create interactive dashboards.
+
+
+
 ---
+
+## Plotly
+
+#### Setup
+
+To download using CRAN, use the following code chunk:
+
+```{r eval=FALSE}
+
+install.packages("plotly")
+ 
+```
+
+
+To download from Github, use the following code chunk:
+
+```{r eval=FALSE}
+
+devtools::install_github("ropensci/plotly")
+ 
+```
+
+
+---
+
+## Plotly
+
+#### Layout
+
+
+To create a basic chart with Plotly use the following code chunk:
+
+
+```{r eval=FALSE}
+
+library(plotly)
+fig <- plot_ly(us_cases_daily, x = ~x, color = ~state)
+fig
+
+```
+
+* The library() function loads the Plotly package. 
+
+* The first argument in the plot_ly() function will be your data in data frame form, the second argument will be the x coordinate/longitude of your data, and the third argumet will change the color of your chart based on state names in the data frame. 
+
+* Other options not shown in the code chunk above, include changing the y coordinate/latitude of your data, changing the color of your chart, changing the type of your chart, changing the symbol of your chart, among others.  
 
