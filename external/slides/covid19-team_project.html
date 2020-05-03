@@ -55,7 +55,93 @@ applications.
 * No Javascript is required for usage and can use only web mapping platforms
 such as Leaflet and Mapbox.
 
-* It can be downloaded using CRAN or Github.
+* Can be downloaded using CRAN or Github.
+
+* Can be published onto R Studio's designated Shiny App web server and can be 
+treated as a web application.
+
+---
+
+## Shiny 
+
+#### Setup
+
+To download using CRAN, use the following code chunk:
+
+
+```r
+install.packages("shiny")
+```
+
+To download from Github, use the following code chunk:
+
+
+```r
+devtools::install_github("rstudio/shiny")
+```
+---
+## Shiny
+
+#### Layout
+
+To create a basic app with Shiny use the following code chunk:
+
+Example:
+
+
+```r
+library(shiny)
+# Define UI for app that draws a histogram ----
+ui &lt;- fluidPage(
+  # App title ----
+  titlePanel("Hello Shiny!"),
+  # Sidebar layout with input and output definitions ----
+  sidebarLayout(
+    # Sidebar panel for inputs ----
+    sidebarPanel(
+      # Input: Slider for the number of bins ----
+      sliderInput(inputId = "bins",
+                  label = "Number of bins:",
+                  min = 1,
+                  max = 50,
+                  value = 30)
+    ),
+    # Main panel for displaying outputs ----
+    mainPanel(
+      # Output: Histogram ----
+      plotOutput(outputId = "distPlot")
+    )
+  )
+)
+```
+
+---
+
+```r
+# Define server logic required to draw a histogram ----
+server &lt;- function(input, output) {
+  output$distPlot &lt;- renderPlot({
+
+    x    &lt;- faithful$waiting
+    bins &lt;- seq(min(x), max(x), length.out = input$bins + 1)
+
+    hist(x, breaks = bins, col = "#75AADB", border = "white",
+         xlab = "Waiting time to next eruption (in mins)",
+         main = "Histogram of waiting times")
+    })
+}
+# Create Shiny app ----
+shinyApp(ui = ui, server = server)
+```
+
+* This example Shiny app creates an interactive page where you can change the
+slider for how many bins there are in the random normal distribution bar chart.
+
+* The app consists of a UI function and a Server function.
+  * "The user interface (ui) object controls the layout and appearance of your 
+  app." (from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
+  * "The server function contains the instructions that your computer needs to 
+  build your app." (from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
 
 ---
 
@@ -63,11 +149,14 @@ such as Leaflet and Mapbox.
 
 #### Summary
 
-* Plotly is a free R package that can be used to create interactive maps with ggplot2 graphs and custom interfaces using the open source JavaScript graphic library (plotly.js).
+* Plotly is a free R package that can be used to create interactive maps with 
+ggplot2 graphs and custom interfaces using the open source JavaScript graphic 
+library (plotly.js).
 
 * The current version of Plotly is 4.9.2.1 and was released on April 4th, 2020.
 
-* It can be downloaded using CRAN or Github and uses htmlwidgets to create interactive dashboards.
+* It can be downloaded using CRAN or Github and uses htmlwidgets to create 
+interactive dashboards.
 
 
 
@@ -112,9 +201,14 @@ fig
 
 * The library() function loads the Plotly package. 
 
-* The first argument in the plot_ly() function will be your data in data frame form, the second argument will be the x coordinate/longitude of your data, and the third argumet will change the color of your chart based on state names in the data frame. 
+* The first argument in the plot_ly() function will be your data in data frame 
+form, the second argument will be the x coordinate/longitude of your data, and 
+the third argumet will change the color of your chart based on state names in 
+the data frame. 
 
-* Other options not shown in the code chunk above, include changing the y coordinate/latitude of your data, changing the color of your chart, changing the type of your chart, changing the symbol of your chart, among others.
+* Other options not shown in the code chunk above, include changing the y 
+coordinate/latitude of your data, changing the color of your chart, changing the 
+type of your chart, changing the symbol of your chart, among others.
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
