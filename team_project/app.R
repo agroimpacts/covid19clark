@@ -289,7 +289,7 @@ server <- function(input, output, session) {
    }
    ggplot() + geom_line(aes(values_COVID_dates, values_COVID_)) +
      ylim(0, max(log10(values_COVID_orig))) + xlab("Recorded Dates") +
-     ylab(paste0(input$caseordeath))
+     ylab(paste0("log10(", "", input$caseordeath, ")"))
 
 
    })
