@@ -59,6 +59,69 @@ specific states of interest.
 
 ---
 
+# Data Visualizations
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Setup
+library(ggplot2)
+library(tidyverse)
+library(COVID19)
+library(covid19clark)
+data("us_counties")
+data("us_cases_daily")
+library(devtools)
+library(dplyr)
+library(stringr)
+library(maps)
+library(mapdata)
+library(ggmap)
+library("rnaturalearth")
+library("rnaturalearthdata")
+library("sf")
+```
+
+## Chart 1
+
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5, fig.height= 6.5}
+
+ ggplot() + geom_histogram(data = us_cases_daily$county %>% 
+                              filter(.$cases > 0),
+             aes(x = x, fill = "cases"), color = "white") + 
+  geom_histogram(data =us_cases_daily$county %>% filter(.$deaths > 0), 
+             aes(x = x, fill = "deaths"), color = "white") + 
+    labs(title="Histogram Showing U.S. Cases and Deaths", 
+         x = "Longitude", y = "Cases/Deaths") +
+  theme(plot.title = element_text(hjust = 0.5)) + theme(legend.title = element_blank())
+
+```
+
+## Chart 2
+
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5}
+
+state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% 
+  summarise(maxcases = max(cases))
+ barplot(state_cases$maxcases, main = "Number of COVID-19 Cases by State", 
+         xlab = "U.S. States and Territories", ylab = "Number of Cases", 
+         names.arg = c(1:52), col = "purple")
+
+```
+
+## Chart 3
+
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5}
+
+state_deaths <- us_cases_daily$state %>% group_by(state1) %>% 
+    select(deaths) %>% summarise(maxdeaths = max(deaths)) 
+  barplot(state_deaths$maxdeaths, main = "Number of COVID-19 Deaths by State", 
+          xlab = "U.S. States and Territories", ylab = "Number of Deaths", 
+          names.arg = c(1:52), col = "purple")
+
+```
+
+
+---
+
 # Results
 
 ## Plotly
@@ -87,6 +150,90 @@ include the ability to download the maps as png files; the ability to pan, zoom
 in, zoom out, box select, lasso select, reset view; and the ability to toggle 
 show the closest data on hover. Lastly, the user has the ability to view the 
 dashboard in a browser window in html format. 
+
+
+```{r echo=FALSE, message=FALSE}
+library(flexdashboard)
+library(plotly)
+library(COVID19)
+library(covid19clark)
+library(tigris)
+data("us_counties")
+data("us_cases_daily")
+data("fips_codes")
+library(tidyverse)
+library(geospaar)
+library(dplyr)
+library(RColorBrewer)
+library(gplots)
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+pal <- RColorBrewer::brewer.pal(9, "OrRd")
+df <- as.tibble(us_cases_daily$county)
+fips <- fips_codes
+fips$county <- str_remove(fips$county, " County")
+fips$county <- tolower(fips$county)
+fips$state_name <- tolower(fips$state_name)
+df <- df %>% left_join(fips, by = c("state1" = "state_name", "county.x" = "county")) %>%
+    mutate(., FIPS = paste0(state_code, county_code)) %>% filter(!is.na(date) & (cases > 0))
+df <- df %>% filter(df$date == max(df$date))
+classInt <- classInt::classIntervals(df$cases, 8, style = "jenks")
+df <- df %>% mutate(breaks = cut(cases, breaks = classInt$brks)) %>% filter(!is.na(breaks)) %>% group_by(breaks)
+library(rjson)
+url <- 'https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json'
+counties <- rjson::fromJSON(file=url)
+g <- list(
+    scope = 'usa',
+    projection = list(type = 'albers usa'),
+    showlakes = TRUE,
+    lakecolor = toRGB('white')
+)
+
+
+fig1 <- plot_ly()
+colorscale= pal
+
+df$county_capital <-  gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2",   
+     df$county.x,
+     perl = TRUE)
+df$hover <- paste(df$county_capital, '<br>', "Cases:", df$cases, '<br>', "Population:", df$pop)
+fig1 <- fig1 %>% add_trace(
+    type="choroplethmapbox",
+    geojson=counties,
+    locations=df$FIPS,
+    z=log10(df$cases),
+    colors = colorscale,
+    zmin=log10(min(classInt$brks)),
+    zmid=log10(median(classInt$brks)),
+    zmax=log10(max(classInt$brks)),
+    marker=list(line=list(width=0)),
+    text = df$hover,
+    hoverinfo = "text"
+)
+
+m <- list(
+  l = 0,
+  r = 0,
+  b = 0,
+  t = 0
+)
+fig1 <- fig1 %>% colorbar(title = "COVID-19 Cases <br> (Log Values)", limits = log10(c(1, 40000)))
+fig1 <- fig1 %>% layout(
+     geo=g
+)
+
+fig1 <- fig1 %>% layout(margin = m,
+    mapbox=list(
+        style="carto-positron",
+        zoom =2.6,
+        center=list(lon= -95.71, lat=37.09))
+)
+fig1
+```
+
 
 ## Shiny 
 
