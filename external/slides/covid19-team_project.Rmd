@@ -11,7 +11,7 @@ output:
       countIncrementalSlides: false
 ---
 
-```{r echo=FALSE, message=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 #Setup
 library(ggplot2)
 library(tidyverse)

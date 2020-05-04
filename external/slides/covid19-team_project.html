@@ -16,11 +16,15 @@ class: center, middle, inverse, title-slide
 
 ---
 
+
+
+
+
 ## COVID-19 Summary
 
 * COVID-19 derives from a coronavirus named SARS-CoV-2 and tends to spread through saliva droplets when a person coughs or through nose discharge when a person sneezes.
 
-* Most peope with the virus will experience respiratory illness and recover without hospitalization but it more seriously affects older adults and people with underlying medical condiditons. 
+* Most people with the virus will experience respiratory illness and recover without hospitalization, but it more seriously affects older adults and people with underlying medical conditions. 
 
 * There are currently over 1 million confirmed cases in the United States and over 65,000 deaths. 
 
@@ -28,18 +32,48 @@ class: center, middle, inverse, title-slide
 
 ---
 ## COVID19clark Package
-* Project was based on "COVID19clark" R package, primarily assembled and developed 
-by Dr. Lyndon Estes.
+* Our project was based on the "COVID19clark" R package, primarily assembled and developed by Dr. Lyndon Estes.
 
-* Package is adapted from Rami Krispin's "coronavirus" R package 
-(https://github.com/RamiKrispin/coronavirus) and data is gathered from Johns 
+* The package is adapted from Rami Krispin's "coronavirus" R package 
+(https://github.com/RamiKrispin/coronavirus) and data is gathered from the Johns 
 Hopkins University COVID-19 data repository 
 (https://github.com/CSSEGISandData/COVID-19/).
-  * Rami's package was used to create this data dashboard of COVID-19 cases: 
+  * Krispin's package was used to create this data dashboard of COVID-19 cases: 
   https://ramikrispin.github.io/coronavirus_dashboard/
 
-* The COVID19clark package summarizes the COVID-19 data from JHU and maps its 
-severity in the northeastern United States and graphs the amount of cases and deaths.
+* The COVID19clark package summarizes the COVID-19 data from JHU, maps its 
+severity in the northeastern United States, and graphs the amount of cases and deaths within the area.
+
+
+---
+## Data Visualizations
+
+#### Chart 1
+&lt;img src="covid19-team_project_files/figure-html/unnamed-chunk-2-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+#### Chart 2
+
+&lt;img src="covid19-team_project_files/figure-html/unnamed-chunk-3-1.png" style="display: block; margin: auto;" /&gt;
+
+
+---
+#### Chart 3
+
+
+
+&lt;img src="covid19-team_project_files/figure-html/unnamed-chunk-4-1.png" style="display: block; margin: auto;" /&gt;
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -47,18 +81,18 @@ severity in the northeastern United States and graphs the amount of cases and de
 
 #### Summary
 
-* Shiny is a free R package that allows the user to create interactice web 
-applications. 
+* Shiny is a free R package that allows users to create interactive web 
+applications 
 
 * The current version of Shiny is 1.4.0.2
 
-* No Javascript is required for usage and can use only web mapping platforms
-such as Leaflet and Mapbox.
+* No Javascript is required for usage, and it can only use web mapping platforms
+such as Leaflet and Mapbox
 
-* Can be downloaded using CRAN or Github.
+* Can be downloaded using CRAN or Github
 
 * Can be published onto R Studio's designated Shiny App web server and can be 
-treated as a web application.
+treated as a web application
 
 ---
 
@@ -80,13 +114,12 @@ To download from Github, use the following code chunk:
 devtools::install_github("rstudio/shiny")
 ```
 ---
+
 ## Shiny
 
 #### Layout
 
-To create a basic app with Shiny use the following code chunk:
-
-Example:
+To create a basic app with Shiny use the following code chunk (example):
 
 
 ```r
@@ -117,6 +150,7 @@ ui &lt;- fluidPage(
 
 ---
 
+
 ```r
 # Define server logic required to draw a histogram ----
 server &lt;- function(input, output) {
@@ -142,6 +176,8 @@ slider for how many bins there are in the random normal distribution bar chart.
   app." (from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
   * "The server function contains the instructions that your computer needs to 
   build your app." (from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
+  * "Finally the shinyApp function creates Shiny app objects from an explicit 
+  UI/server pair."  from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
 
 ---
 
@@ -153,11 +189,12 @@ slider for how many bins there are in the random normal distribution bar chart.
 ggplot2 graphs and custom interfaces using the open source JavaScript graphic 
 library (plotly.js).
 
-* The current version of Plotly is 4.9.2.1 and was released on April 4th, 2020.
+* The current version of Plotly is 4.9.2.1
+
+* It can use web mapping platforms such as Leaflet and Mapbox
 
 * It can be downloaded using CRAN or Github and uses htmlwidgets to create 
 interactive dashboards.
-
 
 
 ---
@@ -208,7 +245,17 @@ the data frame.
 
 * Other options not shown in the code chunk above, include changing the y 
 coordinate/latitude of your data, changing the color of your chart, changing the 
-type of your chart, changing the symbol of your chart, among others.
+type of your chart, changing the symbol of your chart, among others.  
+
+---
+
+## Concluding Remarks
+
+* Both the Shiny and Plotly aspects of our poject provide accurate depictions of cases and deaths in the United States but could be made even more successful with additions of interactive dropdown menus and charts.
+
+* As more and more data is being created each day, more aspects can be added to this project including number of current COVID-19 tests in the United States.
+
+* This work is highly important and we hope to both be a part of continuing this work into the future.
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
