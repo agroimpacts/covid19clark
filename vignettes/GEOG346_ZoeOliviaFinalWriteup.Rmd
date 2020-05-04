@@ -97,7 +97,7 @@ library("sf")
 
 ## Chart 2
 
-```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5}
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5, fig.height= 6.5}
 
 state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>% 
   summarise(maxcases = max(cases))
@@ -109,7 +109,7 @@ state_cases <- us_cases_daily$state %>% group_by(state1) %>% select(cases) %>%
 
 ## Chart 3
 
-```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5}
+```{r echo=FALSE, message=FALSE, fig.align='center', fig.width=11.5, fig.height= 6.5}
 
 state_deaths <- us_cases_daily$state %>% group_by(state1) %>% 
     select(deaths) %>% summarise(maxdeaths = max(deaths)) 
@@ -170,7 +170,7 @@ library(gplots)
 ```
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, fig.align='center', fig.width=8.5, fig.height= 4.5}
 pal <- RColorBrewer::brewer.pal(9, "OrRd")
 df <- as.tibble(us_cases_daily$county)
 fips <- fips_codes
@@ -218,10 +218,10 @@ m <- list(
   l = 0,
   r = 0,
   b = 0,
-  t = 0
+  t = 30
 )
 fig1 <- fig1 %>% colorbar(title = "COVID-19 Cases <br> (Log Values)", limits = log10(c(1, 40000)))
-fig1 <- fig1 %>% layout(
+fig1 <- fig1 %>% layout(title= "Coronavirus Cases by U.S. County",
      geo=g
 )
 
@@ -233,7 +233,7 @@ fig1 <- fig1 %>% layout(margin = m,
 )
 fig1
 ```
-
+An Example of One of the Four Maps Created with Plotly 
 
 ## Shiny 
 
@@ -262,10 +262,13 @@ us_cases_daily data including state names, x and y coordinates, dates, cases,
 deaths, and population. Lastly, the user has the ability to view the dashboard 
 in a browser window in html format. 
 
-![Display of COVID19 Cases Per State on a Leaflet Map of the US](figures/shinyapppic.png)
+
+![Display of COVID-19 Cases Per State on a Leaflet Map of the US](figures/shinyapppic.png)
+
 
 
 ![COVID-19 Data Visualizations by State](figures/shinyapppic2.png)
+
 
 
 ![COVID-19 Data Table Sorted by State](figures/shinyapppic3.png)
