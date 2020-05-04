@@ -262,10 +262,14 @@ us_cases_daily data including state names, x and y coordinates, dates, cases,
 deaths, and population. Lastly, the user has the ability to view the dashboard 
 in a browser window in html format. 
 
-![text](figures/shinyapppic.png)
-![text](figures/shinyapppic2.png)
+![Display of COVID19 Cases Per State on a Leaflet Map of the US](figures/shinyapppic.png)
 
-![text](figures/shinyapppic3.png)
+
+![COVID-19 Data Visualizations by State](figures/shinyapppic2.png)
+
+
+![COVID-19 Data Table Sorted by State](figures/shinyapppic3.png)
+
 ---
 
 # Discussion
