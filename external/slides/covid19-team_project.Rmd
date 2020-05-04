@@ -207,7 +207,7 @@ slider for how many bins there are in the random normal distribution bar chart.
   * "The server function contains the instructions that your computer needs to 
   build your app." (from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
   * "Finally the shinyApp function creates Shiny app objects from an explicit 
-  UI/server pair."  from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
+  UI/server pair."  (from https://shiny.rstudio.com/tutorial/written-tutorial/lesson1/)
 
 ---
 
