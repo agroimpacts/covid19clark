@@ -152,7 +152,7 @@ show the closest data on hover. Lastly, the user has the ability to view the
 dashboard in a browser window in html format. 
 
 
-```{r echo=FALSE, message=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(flexdashboard)
 library(plotly)
 library(COVID19)
@@ -262,6 +262,10 @@ us_cases_daily data including state names, x and y coordinates, dates, cases,
 deaths, and population. Lastly, the user has the ability to view the dashboard 
 in a browser window in html format. 
 
+![text](figures/shinyapppic.png)
+![text](figures/shinyapppic2.png)
+
+![text](figures/shinyapppic3.png)
 ---
 
 # Discussion

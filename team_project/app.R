@@ -6,12 +6,9 @@ library(COVID19)
 #install.packages("covid19clark")
 library(covid19clark)
 library(scales)
-library(lattice)
 library(dplyr)
 library(rgdal)
-library(rsconnect)
 library(ggplot2)
-#::install_version("MASS", "7.3-51.1")
 data("us_cases_daily")
 
 us_cases_county <- us_cases_daily$county %>%
