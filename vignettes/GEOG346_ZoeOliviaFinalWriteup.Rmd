@@ -1,5 +1,5 @@
 ---
-title: "Geospatial Analysis with R Project: COVID-19 Data with Shiny and Plotly"
+title: "Geospatial Analysis with R Final Project: Exploring COVID-19 Data Using Shiny and Plotly"
 subtitle: "GEOG346"
 author: "Zoe Maymon and Olivia Landry"
 date: "`r Sys.Date()`"
@@ -27,7 +27,7 @@ We retrieved our data from the COVID19clark package, which summarized and
 formatted the JHU data. The output dataset, “us_cases_daily.rda” was used as the
 basis for both applications. Two different packages were used (Plotly and Shiny)
 in order to compare the abilities of two methods in terms of their displaying 
-capabilities. Plotly mainly depicted case and death data at the county level, 
+capabilities. Plotly mainly depicts case and death data at the county level, 
 while Shiny depicts both case and death data at the county and state level, for 
 every day since the first day of recording. Both packages provide users the 
 ability to create interactive maps and charts and can be implemented into a 
@@ -43,45 +43,18 @@ COVID-19 case and death data.
 ## Plotly
 
 One of our methods encompassed the use of the Plotly package, a free R package 
-that uses the open source JavaScript graphing library and allows the users to 
+that uses the open source JavaScript graphing library and allows users to 
 create interactive graphics and maps including scatter plots, lines plots, 
-histograms, box plots, etc. It can be downloaded from CRAN or Github and uses 
-htmlwidgets to create maps and interactive dashboards. In this project, we 
-created a dashboard for our Plotly maps which allows users easier access to our 
-results and provides them with a platform in which to interact with the final 
-maps. Using the Plotly package, we were able to create four interactive 
-choropleth maps. These maps have a hover capability which allows users access 
+histograms, box plots, etc. It can be downloaded from CRAN (using the install.package() function) or Github (using the devtools::install_github() function) and uses htmlwidgets to create maps and interactive dashboards. In this project, we created a dashboard for our Plotly maps which allows users easier access to our results and provides them with a platform in which to interact with the final maps. Using the Plotly package, we were able to create four interactive choropleth maps. These maps have a hover capability which allows users access to
 important information by just holding their cursor over a certain region on the 
 map. Additionally, the Plotly maps were created using mapbox, an open source 
-mapping platform in order to allow users to view world geography providing for 
+mapping platform in order to allow users to view world geography, providing for 
 a more visually appealing display of the COVID-19 data. 
 
 ## Shiny
 
-R Studio Inc. developed a free R package called Shiny that allows the user to 
-create interactive web apps. The package is built from javascript primarily but
-also contains some elements of HTML. The application can be implemented 
-additionally in HTML, CSS, and Javascript for additional capability. The package
-can be both downloaded from CRAN (using the install.package() function) and from
-Github (using the devtools::install_github() function). This package is our 
-second method used in our project as it works well with showing maps and data 
-tables that are interactive, which is especially compatible with the COVID-19 
-dataset we retrieved from Johns Hopkins University. Using the Shiny package, I 
-created a web application that contains a Leaflet map with overlaid COVID-19 
-data (from Johns Hopkins University), a graph and a chart of the 
-cases/deaths/case rate/death rate, and a table with the data for each county 
-which is sorted by state. Each of these features of the Shiny app are embedded 
-in the window that is created when Shiny is initialized, all organized into 
-tabs. On the left hand-side of the window, there are options for the user to 
-change the color pallete, the geographic extent, the date of the reported case, 
-and whether to display cases, deaths, case rate, or death rate. The COVID-19 
-data is represented in the Leaflet map window, with a basemap imported from 
-Leaflet’s website in the background and the COVID-19 data overlaid on top with 
-the coloration and size of circle polygon dependent on the values. If the 
-geographic extent or any of the other options related to the map is changed 
-(geographic extent, type of data, data recorded, color palette) the map updates 
-accordingly. Similarly, the graph and chart in the second tab and the table in 
-the third table also update accordingly, but with the added plus of selecting 
+Our second method uses Shiny, a free R package developed by R Studio Inc. that allows users to create interactive web apps. The package is built from Javascript primarily but also contains some elements of HTML. Shiny can be implemented in HTML, CSS, or Javascript, each containing various capabilities. The package can be downloaded from CRAN (using the install.package() function) or from Github (using the devtools::install_github() function) and is capable of showing interactive maps and data tables, which is especially compatible with the COVID-19 dataset we retrieved from Johns Hopkins University (JHU). Using the Shiny package, we created a web application that contains a Leaflet map which we overlaid with the COVID-19 data (from JHU); a graph and a chart of the 
+cases/deaths/case rate/death rate data; and a table showing the data for each county which is sorted by state. Each of these features within the Shiny app, are embedded in a window that is created when Shiny is initialized, and organized into tabs. On the left hand-side of the window, there are options for the user to change the color pallete, the geographic extent, the date of the reported cases/deaths, and whether to display cases, deaths, case rate, or death rate. The COVID-19 data is represented in the Leaflet map window with a basemap imported from Leaflet’s website. The COVID-19 data is overlaid on top with coloration and circle polygon size dependent on the values. If the geographic extent or any of the other options related to the map (type of data, data recorded, color palette) is changed, the map will update accordingly. Similarly, the graph and chart in the second tab (labeled graphs) and the table in the third tab (labeled table) will also update accordingly, with the added plus of user abilitiy to select 
 specific states of interest. 
 
 ---
@@ -170,27 +143,18 @@ basic charts that could be interactive using the Plotly package. It may even be
 exciting to try switching between multiple large interactive maps rather than 
 including a multiple plot layout like we have done with our four maps. Overall, 
 our results are successful for displaying COVID-19 case and death data but there
-is more we could do to add more interactive aspects to our project. 
+is more we could do to add further interactive aspects to our project. 
 
 ## Shiny
 
-For the Shiny aspect of our project we have created a successful full sized map 
+For the Shiny aspect of our project we created a successful full sized map 
 of the United States with several interactive capabilities including drop down 
 menus and multiple tabs. There are drawbacks, however, as there are limitations 
 to the functions and widgets you can add to the interface. It is also not 
-accessible in regards to the stylization of the app. Knowledge of CSS is 
-required to do extensive stylistic changes. The integration of interactive 
-functions such as Leaflet are buggy and occasionally have issues displaying data
-correctly (mainly out of it being a recently made package). Finally, I was 
-experiencing errors in regards to publishing the app on the RStudio’s designated
-web app publishing server, as the app I created would not upload. In continuing 
-this work into the future, it would be beneficial to add dropdown menus to our 
-various tabs so that the dropdown menus on each tab correspond to the 
-information displayed on a specific tab. For example, we have housed all of our 
-dropdown menus on the first page of the Shiny app which all correspond to the 
-map on that page except for the last dropdown menu which corresponds to the 
+accessible in regards to the stylization of the app, as knowledge of CSS is 
+required to carry out extensive stylistic changes. Additionally, the integration of interactive functions such as Leaflet are buggy and occasionally have issues displaying data correctly (mainly out of it being a recently made package). Finally, there are some errors in regards to publishing the app on RStudio’s designated web app publishing server, as the app we created would not upload. In continuing this work into the future, it would be beneficial to add dropdown menus to our various tabs so that the dropdown menus on each tab correspond to the information displayed on a specific tab. For example, we have housed all of our dropdown menus on the first page of the Shiny app which all correspond to the map on that page except for the last dropdown menu which corresponds to the 
 charts on our graphs tab. For the future, it would be beneficial to move this 
-dropdown menu to the graphs tab.Additionally, it would be beneficial to make the
+dropdown menu to the graphs tab. Additionally, it would be beneficial to make the
 charts on our graphs tab interactive so that users can switch between graphs of 
 different data aspects such as cases versus deaths or county versus state. As 
 with the Plotly aspect of our project, our results are successful for displaying
