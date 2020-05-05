@@ -1,4 +1,7 @@
-
+system("git checkout master")
+system("git fetch -p origin")
+system("git checkout devel")
+system("git checkout master -- data/us_cases_daily.rda")
 
 library(shiny)
 library(leaflet)
@@ -7,7 +10,6 @@ library(RColorBrewer)
 library(COVID19)
 #install.packages("covid19clark")
 library(covid19clark)
-get_master_data()
 library(scales)
 library(dplyr)
 library(rgdal)
