@@ -1,3 +1,5 @@
+
+
 library(shiny)
 library(leaflet)
 library(RColorBrewer)
@@ -5,14 +7,11 @@ library(RColorBrewer)
 library(COVID19)
 #install.packages("covid19clark")
 library(covid19clark)
+get_master_data()
 library(scales)
 library(dplyr)
 library(rgdal)
 library(ggplot2)
-system("git checkout master")
-system("git fetch -p origin")
-system("git fetch -p origin")
-system("git checkout master -- data/us_cases_daily.rda")
 data("us_cases_daily")
 
 us_cases_county <- us_cases_daily$county %>%
