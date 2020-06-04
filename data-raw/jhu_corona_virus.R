@@ -58,10 +58,15 @@ if(tdiff > 0) {
     # load("data/us_cases_daily.rda")
 
     # run cleaning for US cases
+    # case_data <- updated_cases
     # us_cases_daily <- covid19clark::us_cases(previous_cases)
-    us_cases_daily <- covid19clark::us_cases(updated_cases)
-    save(us_cases_daily, file = here::here("data/us_cases_daily.rda"))
-  }
+    # us_cases_daily <- covid19clark::us_cases(updated_cases)
+    # sf::st_write(us_cases_daily$state, delete_dsn = TRUE,
+    #              dsn = here::here("inst/extdata/us_state_cases_daily.geojson"))
+    # # save(us_cases_daily, file = here::here("data/us_cases_daily.rda"))
+    # sf::st_write(us_cases_daily$county, delete_dsn = TRUE,
+    #              dsn = here::here("inst/extdata/us_county_cases_daily.geojson"))
+    }
 }
 
 

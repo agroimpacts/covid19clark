@@ -58,18 +58,32 @@ us_cases <- function(case_data) {
   # clean_cases <- covid19clark:::us_cases_clean(case_data)
   clean_cases <- us_cases_clean(case_data)
 
+  # US states
+  us_states <- sf::st_read(
+    system.file("extdata/us_states.geojson", package = "covid19clark"),
+    quiet = TRUE
+  ) %>% mutate(state = as.character(state))
+
+  # US counties
+  us_counties <- sf::st_read(
+    system.file("extdata/us_counties.geojson", package = "covid19clark"),
+    quiet = TRUE
+  )
+
   # state cases
   state_cases <- clean_cases %>%
     group_by(state1, date) %>%
     summarize(cases = sum(cases), deaths = sum(deaths), state2 = unique(state2),
               x = mean(x, na.rm = TRUE), y = mean(y, na.rm = TRUE)) %>%
+    mutate(newcases = cases - lag(cases), newdeaths = deaths - lag(deaths)) %>%
     ungroup() %>%
-    dplyr::select(state1, state2, date, cases, deaths)
+    dplyr::select(state1, state2, date, cases, newcases, deaths, newdeaths)
   state_cases <- state_cases %>%
     # as_tibble() %>% select(state, x, y) %>%
-    left_join(covid19clark::us_states, ., by = c("state" = "state1")) %>%
+    left_join(us_states, ., by = c("state" = "state1")) %>%
     rename(state1 = state) %>%
-    dplyr::select(state1, state2, x, y, date, cases, deaths, pop) %>%
+    dplyr::select(state1, state2, x, y, date, cases, newcases, deaths,
+                  newdeaths, pop) %>%
     arrange(state1, date)
 
   # county cases
@@ -78,14 +92,13 @@ us_cases <- function(case_data) {
     filter(!is.na(county)) %>% filter(!(x == 0 & y == 0) | !is.na(x)) %>%
     group_by(state1, county, date) %>%
     mutate(cases = cumsum(cases), deaths = sum(deaths)) %>%
+    mutate(newcases = cases - lag(cases), newdeaths = deaths - lag(deaths)) %>%
     ungroup() %>% sf::st_as_sf(coords = c("x", "y"), crs = 4326) %>%
-    sf::st_join(covid19clark::us_counties, ., ) %>%
+    sf::st_join(us_counties, ., ) %>%
     # left_join(us_counties, ., by = c("state" = "state1")) %>%
     dplyr::select(state1, state2, county.x, county.y, x, y, date,
-                  cases, deaths, pop) %>%
+                  cases, newcases, deaths, newdeaths, pop) %>%
     arrange(state1, date)
 
   return(list("state" = state_cases, "county" = county_cases))
 }
-
-

@@ -21,8 +21,12 @@ us_states <- us_counties %>% group_by(state) %>% summarize(pop = sum(pop))
 us_states <- us_states %>% st_centroid() %>% st_coordinates() %>%
   as_tibble() %>% bind_cols(us_states, .) %>%
   select(state, pop, X, Y) %>% rename(x = X, y = Y)
-save(us_counties, file = here::here("data/us_counties.rda"))
-save(us_states, file = here::here("data/us_states.rda"))
+
+st_write(us_counties, dsn = here::here("inst/extdata/us_counties.geojson"))
+st_write(us_states, dsn = here::here("inst/extdata/us_states.geojson"))
+
+# save(us_counties, file = here::here("data/us_counties.rda"))
+# save(us_states, file = here::here("data/us_states.rda"))
 
 # state <- get_estimates(geography = "state", product = "population")
 # state %>% dplyr::summarise(sum(value, na.rm = TRUE))

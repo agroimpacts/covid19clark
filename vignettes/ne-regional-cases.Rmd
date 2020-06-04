@@ -31,9 +31,23 @@ library(patchwork)
 library(covid19clark)
 
 # county and state maps
-data("us_cases_daily")
-data("us_counties")
-data("us_states")
+# data("us_cases_daily")
+# data("us_counties")
+# data("us_states")
+cases <- readr::read_csv(
+  system.file("extdata/covid19_daily_reports.csv", package = "covid19clark"),
+  col_types = readr::cols(fips = readr::col_character(),
+                          admin2 = readr::col_character(),
+                          key = readr::col_character())
+)
+us_cases_daily <- us_cases(cases)
+
+# boundaries
+system.file("extdata/us_states.geojson", package = "covid19clark") %>% 
+  st_read() -> us_states
+system.file("extdata/us_counties.geojson", package = "covid19clark") %>%
+  st_read() -> us_counties
+
 ```
 
 ```{r, echo=FALSE, eval=FALSE}
@@ -65,7 +79,7 @@ city_buffers <- lapply(seq(100, 400, 100) * 1000, function(x) {
 
 # extract region: neighboring states intersecting buffers
 states_in_buffers <- lapply(city_buffers, function(x) {
-  ind <- unlist(st_intersects(x, states))
+  ind <- unlist(st_intersects(x, us_states))
   as_tibble(states) %>% slice(ind) %>% pull(state)
 })
 ```
