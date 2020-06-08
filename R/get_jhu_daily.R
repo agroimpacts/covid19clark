@@ -73,6 +73,8 @@ get_jhu_daily <- function(download_date = NULL, write = FALSE,
     ifelse(any(present), varpats$replace[which(present)], NA)
   }) %>% unname
   colnames(cases) <- newnames
+  nanames <- which(is.na(colnames(cases)))
+  colnames(cases)[nanames] <- paste0("NA", 1:length(nanames))
 
   # for earlier dataset, if columns are missing, add them for easy row binding
   outnames <- !varpats$replace %in% colnames(cases)

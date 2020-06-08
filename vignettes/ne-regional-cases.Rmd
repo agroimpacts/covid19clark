@@ -80,7 +80,7 @@ city_buffers <- lapply(seq(100, 400, 100) * 1000, function(x) {
 # extract region: neighboring states intersecting buffers
 states_in_buffers <- lapply(city_buffers, function(x) {
   ind <- unlist(st_intersects(x, us_states))
-  as_tibble(states) %>% slice(ind) %>% pull(state)
+  as_tibble(us_states) %>% slice(ind) %>% pull(state)
 })
 ```
 
