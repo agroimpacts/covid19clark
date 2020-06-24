@@ -12,7 +12,7 @@ around a focal point, in this case Worcester, MA, the home of Clark
 University. It also tries to show county-level detail available in state
 datasets.
 
-**Last update**: 2020-06-17 14:36:40
+**Last update**: 2020-06-24 10:30:35
 <img src="vignettes/figures/case_maps.png" width="100%" />
 
 ## Notes
