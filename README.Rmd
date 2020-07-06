@@ -7,21 +7,14 @@ A very limited `R` package for mapping daily changes in the number of COVID-19 c
 
 **Last update**: `r lubridate::now()`
 ```{r, echo=FALSE, out.width='95%', fig.show='hold', fig.align='center'}
-figs <- c(here::here("vignettes/figures/caserate_map.png"), 
-          here::here("vignettes/figures/case_map.png"))
+figs <- c("vignettes/figures/caserate_map.png", 
+          "vignettes/figures/case_map.png")
 knitr::include_graphics(figs) 
-knitr::include_graphics(
-  here::here("vignettes/figures/statecases_daily.png")
-) 
-knitr::include_graphics(
-  here::here("vignettes/figures/statecases_cumulative.png")
-) 
-knitr::include_graphics(
-  here::here("vignettes/figures/statedeaths_daily.png")
-) 
-knitr::include_graphics(
-  here::here("vignettes/figures/statedeaths_cumulative.png")
-) 
+knitr::include_graphics("vignettes/figures/statecases_daily.png")
+knitr::include_graphics("vignettes/figures/statecases_cumulative.png")
+knitr::include_graphics("vignettes/figures/statedeaths_daily.png") 
+knitr::include_graphics("vignettes/figures/statedeaths_cumulative.png")
+
 ```
 
 ## Notes

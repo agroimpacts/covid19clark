@@ -3,7 +3,7 @@
 # get data updates
 # JHU
 library(covid19clark)
-source(here::here("data-raw/jhu_corona_virus.R"))
+# source(here::here("data-raw/jhu_corona_virus.R"))
 
 # # Mass MPH
 # source(here::here("data-raw/mass_dph_cases_today.R"))
@@ -12,7 +12,7 @@ source(here::here("data-raw/jhu_corona_virus.R"))
 # source(here::here("data-raw/ct_dph_cases_today.R"))
 
 # Build package
-devtools::install()
+# devtools::install()
 rmarkdown::render(input = here::here('vignettes/ne-regional-cases.Rmd'),
                   output_file = here::here('vignettes/ne-regional-cases.html'))
 rmarkdown::render(input = here::here('README.Rmd'),
