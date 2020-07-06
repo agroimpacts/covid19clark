@@ -12,7 +12,7 @@ around a focal point, in this case Worcester, MA, the home of Clark
 University. It also tries to show county-level detail available in state
 datasets.
 
-**Last update**: 2020-07-05 23:45:59
+**Last update**: 2020-07-05 23:48:42
 <img src="/Users/lestes/Dropbox/teaching/clark/courses/geog_246-346/covid19clark/vignettes/figures/caserate_map.png" width="95%" style="display: block; margin: auto;" /><img src="/Users/lestes/Dropbox/teaching/clark/courses/geog_246-346/covid19clark/vignettes/figures/case_map.png" width="95%" style="display: block; margin: auto;" /><img src="/Users/lestes/Dropbox/teaching/clark/courses/geog_246-346/covid19clark/vignettes/figures/statecases_daily.png" width="95%" style="display: block; margin: auto;" /><img src="/Users/lestes/Dropbox/teaching/clark/courses/geog_246-346/covid19clark/vignettes/figures/statecases_cumulative.png" width="95%" style="display: block; margin: auto;" /><img src="/Users/lestes/Dropbox/teaching/clark/courses/geog_246-346/covid19clark/vignettes/figures/statedeaths_daily.png" width="95%" style="display: block; margin: auto;" /><img src="/Users/lestes/Dropbox/teaching/clark/courses/geog_246-346/covid19clark/vignettes/figures/statedeaths_cumulative.png" width="95%" style="display: block; margin: auto;" />
 
 ## Notes
