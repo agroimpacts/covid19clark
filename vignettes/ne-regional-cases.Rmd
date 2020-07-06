@@ -1,0 +1,300 @@
+---
+title: "Northeast Regional COVID-19 cases "
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Northeast Regional COVID-19}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(tidyverse)
+library(covid19clark)
+library(sf)
+```
+
+## Overview
+This package pulls the daily time series data from the Johns Hopkins University [COVID-19 repository](https://github.com/CSSEGISandData/COVID-19/), and adapts code from Rami Krispin's [coronavirus](https://github.com/RamiKrispin/coronavirus) R package, which has a very nice dashboard. 
+
+This one is designed to focus on specific regions, with a particular interest in Worcester, MA, so we can keep the Clark University community informed about the rate of new cases in our immediate vicinity. We are also trying to provide finer spatial resolution by reading in county-level cases reported by state health authorities in the region.
+
+## Data
+```{r, message=FALSE, warning=FALSE}
+cases <- get_jhu_ts2()
+us_states <- sf::st_read(
+  system.file("extdata/us_states.geojson", package = "covid19clark"),
+  quiet = TRUE
+) %>% mutate(state = as.character(state))
+
+# US counties
+us_counties <- sf::st_read(
+  system.file("extdata/us_counties.geojson", package = "covid19clark"),
+  quiet = TRUE
+)
+```
+
+
+## Regionalization
+We define a focal city (Worcester), and then figure out which states fall within varius radii around Worcester. These are the basis for time series analyses.
+```{r, message=FALSE, warning=FALSE}
+# select city
+focal_city <- focal_point("Worcester", "USA")
+
+# buffer and focal city
+city_buffers <- lapply(seq(100, 400, 100) * 1000, function(x) {
+  buff <- st_transform(focal_city, crs = 102008) %>% st_buffer(dist = x)
+  buff <- st_transform(buff, crs = 4326)
+})
+
+# extract region: neighboring states intersecting buffers
+states_in_buffers <- lapply(city_buffers, function(x) {
+  ind <- unlist(st_intersects(x, us_states))
+  as_tibble(us_states) %>% slice(ind) %>% pull(state)
+})
+```
+
+## Data prep
+Prepare datasets first
+```{r, message=FALSE, warning=FALSE}
+# data
+# cases %>% filter(state == "New York" & date == max(date)) %>% View()
+cases <- cases %>% group_by(combined_key) %>%
+  mutate(newcases = cases - lag(cases), newdeaths = deaths - lag(deaths)) %>%
+  mutate(newdeaths = ifelse(newdeaths < 0, 0, newdeaths)) %>%
+  mutate(case_rate = cases / (population / 1000),
+         newcase_rate = newcases / (population / 1000),
+         death_rate = deaths / (population / 1000),
+         newdeath_rate = newdeaths / (population / 1000)) %>%
+  select(county, state, combined_key, x, y, date, population,
+         cases, newcases, case_rate, newcase_rate,
+         deaths, newdeaths, death_rate, newdeath_rate) %>%
+  ungroup()
+
+state_names <- tibble::tibble(state = state.name, stateabb = state.abb) %>%
+  mutate(state = tolower(state)) %>%
+  bind_rows(., tibble(state = "district of columbia", stateabb = "DC"))
+
+state_cases <- cases %>% group_by(state, date) %>%
+  summarize(cases = sum(cases), deaths = sum(deaths, na.rm = TRUE),
+            population = sum(population)) %>%
+  mutate(newcases = cases - lag(cases), newdeaths = deaths - lag(deaths)) %>%
+  mutate(newcases = ifelse(newcases < 0, 0, newcases),
+         newdeaths = ifelse(newdeaths < 0, 0, newdeaths)) %>%
+  mutate(case_rate = cases / (population / 1000),
+         newcase_rate = newcases / (population / 1000),
+         death_rate = deaths / (population / 1000),
+         newdeath_rate = newdeaths / (population / 1000)) %>%
+  select(state, date, cases, newcases, case_rate, newcase_rate,
+         deaths, newdeaths, death_rate, newdeath_rate) %>%
+  ungroup()
+
+state_cases <- left_join(
+  state_cases %>% mutate(state = tolower(state)),
+  state_names %>% mutate(stateabb = tolower(stateabb))
+) %>% select(state, stateabb, date, !!names(.))
+```
+
+## Plots
+
+### Plot parameters
+```{r, message=FALSE, warning=FALSE}
+case_breaks <- function(x, min_cases, base = 5, nbreaks = 5) {
+  rng <- c(0.0, max(x, na.rm = TRUE) + (base - max(x, na.rm = TRUE) %% base))
+  brks <- seq(rng[1], rng[2], diff(rng) / nbreaks)
+  brks[1] <- min_cases
+  return(brks)
+}
+
+# pal <- RColorBrewer::brewer.pal(9, "Reds")
+case_legend <- function(x) {
+  x +
+  annotate("rect", xmin = -69.3, xmax = -67, ymin = 41.7, ymax = 42.5,
+           fill = "grey") +
+  annotate("text", x = -68.9, y = 42.3, label = "Deaths", hjust = 0) +
+  annotate("point", x = -69.1, y = 42.3, color = "red", shape = 16, size = 3) +
+  annotate("text", x = -68.9, y = 41.9, label = "Cases", hjust = 0) +
+  annotate("point", x = -69.1, y = 41.9, color = "yellow", shape = 1,
+           size = 3)
+}
+
+# # plotting parameters
+cases_now <- cases %>% filter(date == max(date)) %>%
+  filter(!grepl("out of|unassigned", county, ignore.case = TRUE))
+size_brks <- cases_now %>% pull(case_rate) %>% .[na.omit(.)] %>%
+  case_breaks(., min_cases = 0.01, base = 5, nbreaks = 5) %>% round(., 2)
+# size_brks <- round(case_breaks(cases %>% pull(case_rate) %>% .[na.omit(.)]), 2)
+city_box <- st_bbox(city_buffers[[3]])
+
+# cases %>% filter(date > "2020-06-28") %>% filter(state == "Rhode Island") %>% View()
+
+```
+
+### Case map (rate)
+```{r, message=FALSE, warning=FALSE}
+p1_base <- ggplot(us_counties) + geom_sf(fill = "grey80", lwd = 0.3) +
+  geom_sf(data = focal_city, col = "blue1", shape = 3, size = 2) +
+  geom_sf(data = us_states, col = "black", fill = "transparent")
+
+p1 <- p1_base +
+  geom_point(data = cases_now, aes(x = x, y = y, size = case_rate),
+             shape = 1, color = "yellow") +
+  geom_point(data = cases_now, aes(x = x, y = y, size = death_rate),
+             shape = 16, stroke = FALSE, color = "red") + xlab("") + ylab("") +
+  ggtitle("Case and deaths per 1000 people") +
+  scale_size_continuous(name = "N per 1000", limits = range(size_brks),
+                        breaks = size_brks) +
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.1, 0.1),
+           ylim = city_box[c(2, 4)] + c(0.1, -0.1)) + theme_minimal() +
+  theme(legend.key = element_rect(fill = "grey", linetype = 0))
+p1 <- p1 %>% case_legend(.)
+```
+
+### Case map (total)
+```{r, message=FALSE, warning=FALSE}
+# cases_now %>% filter(state == "New York") %>% View()
+size_brks <- cases_now %>% pull(cases) %>%
+  case_breaks(., 1, base = 1000, nbreaks = 5) %>% round(., 2)
+size_brks <- c(size_brks[1], 100, 1000, 10000, 50000, 100000,
+               size_brks[length(size_brks)])
+p2 <- p1 +
+  geom_point(data = cases_now, aes(x = x, y = y, size = cases), shape = 1,
+             color = "yellow") +
+  geom_point(data = cases_now, aes(x = x, y = y, size = deaths),
+             shape = 16, stroke = FALSE, color = "red") + xlab("") + ylab("") +
+  ggtitle("Total cases and deaths") +
+  scale_size_continuous(name = "N", limits = c(0.001, max(size_brks)),
+                        breaks = size_brks) +
+  coord_sf(xlim = city_box[c(1, 3)] + c(-0.1, 0.1),
+           ylim = city_box[c(2, 4)] + c(0.1, -0.1)) +
+  theme_minimal() +
+  theme(legend.key = element_rect(fill = "grey", linetype = 0))
+p2 <- p2 %>% case_legend(.)
+```
+
+### Cases per state (region)
+```{r, message=FALSE, warning=FALSE}
+# rate plot, all states in 2 degree radius
+ylimit <- max(state_cases$cases)
+theme_mods <- theme(
+  legend.position = "none",
+  axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5)
+)
+pal2 <- c("purple", "blue4", "blue1", "lightblue", "orange", "red1", "red4")
+dt_brks <- seq.Date(as.Date("2020-03-01"), max(cases$date), by = "month")
+dt_brks[length(dt_brks)] <- max(cases$date)
+
+# log10y <- function(x) paste0(round_any(10^x / 1000, 0.01) , "K")
+
+p3_dat <- state_cases %>% filter(state %in% states_in_buffers[[2]]) %>%
+  filter(date > lubridate::ymd("2020-03-01")) %>%
+  mutate(stateabb = toupper(stateabb))
+
+dt_rng <- range(p3_dat$date)
+p3 <- ggplot(p3_dat) + geom_line(aes(date, cases, color = stateabb)) +
+  facet_wrap(vars(stateabb), nrow = 1) +
+  xlab("") + ylab("N cases") +
+  ggtitle("Cases per state") +
+  scale_color_manual(name = "", values = pal2) +
+  scale_y_continuous(trans = "log10", labels = as.integer,
+                     breaks = 10^(0:6), limits = c(1, 10^6), expand = c(0,0)) +
+  scale_x_date(date_labels = "%b %d", breaks = dt_brks) +
+  theme_minimal() + theme_mods
+
+```
+
+### Daily cases per state
+```{r, message=FALSE, warning=FALSE}
+ys <- c(0, 0.48, 1, 1.48, 2, 2.48, 3, 3.48, 4, 4.48, 5)
+ylimit <- max(p3_dat$newcases)
+p3a <- ggplot(p3_dat) +
+  geom_line(aes(date, newcases, color = stateabb), size = 0.5) +
+  facet_wrap(vars(stateabb), nrow = 1) + xlab("") + ylab("N cases") +
+  ggtitle("Daily cases per state") + #ylim(0, ylimit) +
+  scale_color_manual(name = "", values = pal2) +
+  scale_y_continuous(trans = "log10", labels = as.integer, breaks = 10^(0:4),
+                     limits = c(1, ylimit), expand = c(0,0)) +
+  scale_x_date(date_labels = "%b %d", breaks = dt_brks) +
+  theme_minimal() + theme_mods
+```
+
+### Deaths per state
+```{r, message=FALSE, warning=FALSE}
+ylimit2 <- max(state_cases$deaths)
+p4 <- p3_dat %>%
+  ggplot() + geom_line(aes(date, deaths, color = stateabb)) +
+  facet_wrap(vars(stateabb), nrow = 1) + xlab("") + ylab("N deaths") +
+  ggtitle("Cumulative deaths per state") +
+  scale_color_manual(name = "", values = pal2) +
+  scale_y_continuous(trans = "log10", labels = as.integer,
+                     breaks = 10^(0:5), limits = c(1, 10^5), expand = c(0,0)) +
+  scale_x_date(date_labels = "%b %d", breaks = dt_brks) +
+  theme_minimal() + theme_mods
+```
+
+
+### Daily deaths per state
+```{r, message=FALSE, warning=FALSE}
+ylimit2 <- max(state_cases$newdeaths)
+p4a <- p3_dat %>%
+  ggplot() + geom_line(aes(date, newdeaths, color = stateabb), size = 0.5) +
+  facet_wrap(vars(stateabb), nrow = 1) + xlab("") + ylab("N deaths") +
+  ggtitle("Daily deaths per state") +
+  scale_color_manual(name = "", values = pal2) +
+  scale_y_continuous(trans = "log10", labels = as.integer,
+                     breaks = 10^(0:4), limits = c(1, 10^4), expand = c(0,0)) +
+  scale_x_date(date_labels = "%b %d", breaks = dt_brks) +
+  theme_minimal() + theme_mods
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# library(cowplot)
+# theme_set(theme_cowplot(font_size = 10))
+# theme_mod <- theme(axis.text = element_text(size = 8),
+#                    legend.text = element_text(size = 8),
+#                    title = element_text(size = 8))
+ggsave(plot = p1,
+       filename = here::here("vignettes/figures/caserate_map.png"), width = 7,
+       height = 6, units = "in", dpi = 300)
+ggsave(plot = p2,
+       filename = here::here("vignettes/figures/case_map.png"), width = 7,
+       height = 6, units = "in", dpi = 300)
+ggsave(plot = p3,
+       filename = here::here("vignettes/figures/statecases_cumulative.png"),
+       width = 9, height = 3, units = "in", dpi = 300)
+ggsave(plot = p3a,
+       filename = here::here("vignettes/figures/statecases_daily.png"),
+       width = 9, height = 3, units = "in", dpi = 300)
+ggsave(plot = p4,
+       filename = here::here("vignettes/figures/statedeaths_cumulative.png"),
+       width = 9, height = 3, units = "in", dpi = 300)
+ggsave(plot = p4a,
+       filename = here::here("vignettes/figures/statedeaths_daily.png"),
+       width = 9, height = 3, units = "in", dpi = 300)
+```
+
+```{r, echo=FALSE, out.width='95%', fig.show='hold', fig.align='center'}
+figs <- c(here::here("vignettes/figures/caserate_map.png"), 
+          here::here("vignettes/figures/case_map.png"))
+knitr::include_graphics(figs) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statecases_daily.png")
+) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statecases_cumulative.png")
+) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statedeaths_daily.png")
+) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statedeaths_cumulative.png")
+) 
+
+```
+
+
+
