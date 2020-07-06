@@ -69,23 +69,3 @@ if(tdiff > 0) {
     }
 }
 
-
-# # append to archive
-# f <- here::here("inst/extdata/covid19_daily_reports.csv")
-# if(exists("daily_cases")) {
-#   if(max(daily_cases$date) > max(previous_cases$date)) {
-#
-#     # write to daily_reports updated
-#     updated_cases <- dplyr::bind_rows(previous_cases, daily_cases)
-#   } else {
-#     updated_cases <- previous_cases
-#   }
-#
-#   # updated_cases <- previous_cases
-#   readr::write_csv(updated_cases, path = f)
-#
-#   # run cleaning for US cases
-#   us_cases_daily <- covid19clark::us_cases(updated_cases)
-#   save(us_cases_daily, file = here::here("data/us_cases_daily.rda"))
-# }
-#
