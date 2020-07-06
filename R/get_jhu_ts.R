@@ -42,3 +42,46 @@ get_jhu_ts <- function(write = FALSE, filepath = NULL) {
 }
 
 
+#' Read in improved time series data from JHU for the US
+#' @param write If TRUE, writes output as csv to filepath. Defaults to FALSE
+#' @param filepath Provide filename and path to write to.
+#' @return Long format database of time cases, recoveries, deaths
+#' @details Downloads improved time series of JHU Corona virus data for the US,
+#' which is at county-level
+#' Data source: https://github.com/CSSEGISandData/COVID-19.
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr mutate select rename left_join rename_all
+#' @importFrom tidyr pivot_longer
+#' @importFrom tidyselect all_of
+#' @importFrom rvest html_table
+#' @examples
+#' cases <- get_jhu_ts2()
+#' cases <- get_jhu_ts2(write = TRUE)
+#' @export
+get_jhu_ts2 <- function(write = FALSE, filepath = NULL) {
+  case_types <- c("confirmed", "deaths")
+  path <- paste0("https://github.com/CSSEGISandData/COVID-19/raw/master/",
+                 "csse_covid_19_data/csse_covid_19_time_series/",
+                 "time_series_covid19_", case_types, "_US.csv")
+  colpat <- "county|state|combined_key|x|y|date|population|confirmed|deaths"
+
+  cases <- lapply(1:length(case_types), function(x) {  # x <- 2
+    dat <- readr::read_csv(file = path[x]) %>% rename_all(tolower)
+    datecols <- grep("/", colnames(dat))
+    out <- dat %>%
+      pivot_longer(cols = all_of(datecols), names_to = "date",
+                   values_to = case_types[x]) %>%
+      mutate(date = parse_date(date, format = "%m/%d/%y")) %>%
+      rename(county = admin2, state = province_state, country = country_region,
+             y = lat, x = long_) %>%
+      select(grep(colpat, names(.)))
+  }) %>% purrr::reduce(left_join) %>%
+    rename(cases = confirmed) %>% arrange(county, date)
+
+  # write out
+  if(write == TRUE) {
+    readr::write_csv(
+      cases, path = ifelse(!is.null(filepath), filepath, "covid19_ts_us.csv"))
+  }
+  return(cases)
+}

@@ -100,5 +100,3 @@ get_jhu_daily <- function(download_date = NULL, write = FALSE,
   }
   return(cases)
 }
-
-

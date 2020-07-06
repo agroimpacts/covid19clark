@@ -6,16 +6,35 @@ output: github_document
 A very limited `R` package for mapping daily changes in the number of COVID-19 cases. It uses daily data from the Johns Hopkins University [COVID-19 repository](https://github.com/CSSEGISandData/COVID-19/), and adapts code from Rami Krispin's [`coronavirus`](https://github.com/RamiKrispin/coronavirus) package (which has a very nice interactive, global dashboard) and from several surrounding states. The focus of this is to highlight regional changes around a focal point, in this case Worcester, MA, the home of Clark University. It also tries to show county-level detail available in state datasets. 
 
 **Last update**: `r lubridate::now()`
-```{r, echo=FALSE, out.width='100%'}
-knitr::include_graphics("vignettes/figures/case_maps.png")
+```{r, echo=FALSE, out.width='95%', fig.show='hold', fig.align='center'}
+figs <- c(here::here("vignettes/figures/caserate_map.png"), 
+          here::here("vignettes/figures/case_map.png"))
+knitr::include_graphics(figs) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statecases_daily.png")
+) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statecases_cumulative.png")
+) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statedeaths_daily.png")
+) 
+knitr::include_graphics(
+  here::here("vignettes/figures/statedeaths_cumulative.png")
+) 
 ```
 
 ## Notes
+**Update 6 July 2020**:
+- Switched back to JHU daily time series data for US, which includes counties now
+- Plots separate out states into individual panels now
+- Daily rates plotted
+
 **Updates 6 April 2020**:
 
-  - Function added to process US cases and merge with US census data
-  - Maps now presented for cases and deaths, as N per 1000 people and total numbers
-  - State-wise cases and deaths presented on log 10 scale 
+- Function added to process US cases and merge with US census data
+- Maps now presented for cases and deaths, as N per 1000 people and total numbers
+- State-wise cases and deaths presented on log 10 scale 
 
 **Updates 26 March 2020**:
 
