@@ -12,14 +12,17 @@ around a focal point, in this case Worcester, MA, the home of Clark
 University. It also tries to show county-level detail available in state
 datasets.
 
-**Last update**: 2020-07-08 13:09:39
+**Last update**: 2020-07-08 13:13:25
 <img src="vignettes/figures/caserate_map.png" width="95%" style="display: block; margin: auto;" /><img src="vignettes/figures/case_map.png" width="95%" style="display: block; margin: auto;" /><img src="vignettes/figures/statecases_daily.png" width="95%" style="display: block; margin: auto;" /><img src="vignettes/figures/statecases_cumulative.png" width="95%" style="display: block; margin: auto;" /><img src="vignettes/figures/statedeaths_daily.png" width="95%" style="display: block; margin: auto;" /><img src="vignettes/figures/statedeaths_cumulative.png" width="95%" style="display: block; margin: auto;" />
 
 ## Notes
 
-**Update 6 July 2020**: - Switched back to JHU daily time series data
-for US, which includes counties now - Plots separate out states into
-individual panels now - Daily rates plotted
+**Update 6 July 2020**:
+
+  - Switched back to using JHU daily time series data for US, which now
+    includes counties
+  - Time series plots now separate out states into individual panels
+  - Daily cases added alongside cumulative cases, albeit with some noise
 
 **Updates 6 April 2020**:
 

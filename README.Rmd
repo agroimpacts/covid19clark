@@ -19,9 +19,10 @@ knitr::include_graphics("vignettes/figures/statedeaths_cumulative.png")
 
 ## Notes
 **Update 6 July 2020**:
-- Switched back to JHU daily time series data for US, which includes counties now
-- Plots separate out states into individual panels now
-- Daily rates plotted
+
+- Switched back to using JHU daily time series data for US, which now includes counties 
+- Time series plots now separate out states into individual panels
+- Daily cases added alongside cumulative cases, albeit with some noise
 
 **Updates 6 April 2020**:
 
