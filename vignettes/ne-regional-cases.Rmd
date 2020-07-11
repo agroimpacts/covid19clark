@@ -212,7 +212,8 @@ p3 <- ggplot(p3_dat) + geom_line(aes(date, cases, color = stateabb)) +
 ys <- c(0, 0.48, 1, 1.48, 2, 2.48, 3, 3.48, 4, 4.48, 5)
 ylimit <- max(p3_dat$newcases)
 p3a <- ggplot(p3_dat) +
-  geom_line(aes(date, newcases, color = stateabb), size = 0.5) +
+  geom_point(aes(date, newcases, color = stateabb), size = 0.2) +
+  geom_smooth(aes(date, newcases, color = stateabb), se = FALSE) + 
   facet_wrap(vars(stateabb), nrow = 1) + xlab("") + ylab("N cases") +
   ggtitle("Daily cases per state") + #ylim(0, ylimit) +
   scale_color_manual(name = "", values = pal2) +
@@ -240,8 +241,9 @@ p4 <- p3_dat %>%
 ### Daily deaths per state
 ```{r, message=FALSE, warning=FALSE}
 ylimit2 <- max(state_cases$newdeaths)
-p4a <- p3_dat %>%
-  ggplot() + geom_line(aes(date, newdeaths, color = stateabb), size = 0.5) +
+p4a <- p3_dat %>% ggplot() + 
+  geom_point(aes(date, newdeaths, color = stateabb), size = 0.2) +
+  geom_smooth(aes(date, newdeaths, color = stateabb), se = FALSE) + 
   facet_wrap(vars(stateabb), nrow = 1) + xlab("") + ylab("N deaths") +
   ggtitle("Daily deaths per state") +
   scale_color_manual(name = "", values = pal2) +
