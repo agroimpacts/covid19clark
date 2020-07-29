@@ -125,7 +125,8 @@ case_legend <- function(x) {
 # # plotting parameters
 cases_now <- cases %>% filter(date == max(date)) %>%
   filter(!grepl("out of|unassigned", county, ignore.case = TRUE))
-size_brks <- cases_now %>% pull(case_rate) %>% .[na.omit(.)] %>%
+size_brks <- cases_now %>% 
+  filter(!(is.infinite(case_rate) | is.na(case_rate))) %>% pull(case_rate) %>% 
   case_breaks(., min_cases = 0.01, base = 5, nbreaks = 5) %>% round(., 2)
 # size_brks <- round(case_breaks(cases %>% pull(case_rate) %>% .[na.omit(.)]), 2)
 city_box <- st_bbox(city_buffers[[3]])
@@ -161,7 +162,7 @@ size_brks <- cases_now %>% pull(cases) %>%
   case_breaks(., 1, base = 1000, nbreaks = 5) %>% round(., 2)
 size_brks <- c(size_brks[1], 100, 1000, 10000, 50000, 100000,
                size_brks[length(size_brks)])
-p2 <- p1 +
+p2 <- p1_base +
   geom_point(data = cases_now, aes(x = x, y = y, size = cases), shape = 1,
              color = "yellow") +
   geom_point(data = cases_now, aes(x = x, y = y, size = deaths),
