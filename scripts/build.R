@@ -2,7 +2,7 @@
 
 # get data updates
 # JHU
-library(covid19clark)
+# library(covid19clark)
 # source(here::here("data-raw/jhu_corona_virus.R"))
 
 # # Mass MPH
